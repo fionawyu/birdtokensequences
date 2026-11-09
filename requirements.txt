@@ -4,6 +4,8 @@ mpmath==1.3.0
 numba==0.62.1
 numpy==2.3.3
 pandas
+Pillow
+scikit-image
 PyYAML==6.0.3
 scikit-learn==1.7.2
 scipy==1.16.3

@@ -34,7 +34,7 @@ import scipy.io as sio
 import soundfile as sf
 
 SRC = Path("yncc/yncc_curated_data_process/Plots_YNCC_2s_curate_1115")
-OUT = Path("yncc_reconstructed_audio")
+OUT = Path("datasets_link/yncc_reconstructed_audio")
 
 N_FFT = 512
 SAMPLE_RATE = 36000
