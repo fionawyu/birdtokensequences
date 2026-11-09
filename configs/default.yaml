@@ -1,0 +1,62 @@
+# Default hyperparameters. Every value matches the manuscript; the section or
+# table that defines it is given in the comment next to it.
+
+audio:
+  sample_rate: 44100          # Sec. 2.2, Table 7
+  window_ms: 6.0              # Sec. 2.2, Table 7 (STFT window length)
+  hop_fraction: 0.25          # hop = window * hop_fraction (75% overlap)
+  n_fft: 4096                 # zero-padded FFT size (frequency resolution only)
+  band_hz: [1000, 11000]      # Sec. 2.2, Table 7 (bandpass filter)
+  noise_percentile: 45        # Sec. 2.2, Table 7 (applied to non-zero amplitudes of each frame)
+
+segmentation:
+  frame_percentile: 95        # Sec. 2.3 (per-frame energy = 95th percentile across frequency bins)
+  onset: 0.10                 # Sec. 2.3, Table 7
+  offset: 0.01                # Sec. 2.3, Table 7
+  min_segment_ms: 15.0        # Sec. 2.3, Table 7
+  min_gap_ms: 20.0            # Sec. 2.3, Table 7
+
+symbolic_regression:          # Sec. 2.4, Appendix B
+  population_size: 20
+  generations: 200
+  max_formula_nodes: 10
+  max_subformula_nodes: 7
+  mutation_mean: 1.0          # mean of the exponential draw for the number of mutation operations
+  size_penalty: 0.001         # coefficient of the log(formula size) penalty
+  time_scale: 10.0            # time values are multiplied by this factor during fitting
+  const_range: [0.0, 10.0]    # numeric constants C ~ U[0, 10]
+  derivative_guard: true      # reject candidates whose f, f', f'' are not finite and real
+  seed: 47
+
+tokens:                       # Sec. 2.5, Table 8
+  # Number of time points at which a formula is evaluated:
+  #   "frames" -> one point per spectrogram frame in the segment (manuscript default)
+  #   an integer, e.g. 8 -> that many uniformly spaced points
+  time_points: frames
+  near_zero: 0.0001           # near-zero threshold for time-dependent formulas
+  zero_constants: ["0", "0.0", "0.00"]
+  flat_range: 0.0001          # initial FLAT range threshold
+  slope_sign_fraction: 0.90   # slope sign threshold
+  change_fraction: 0.80       # initial-to-final change (fraction of range)
+  range_cutoff: 0.05          # frequency-range cutoff for WIGGLE and FLAT
+  min_sign_reversals: 2
+
+evaluation:                   # Sec. 2.8, Sec. 3.3
+  n_folds: 5
+  run_seeds: [0, 1, 2, 3]     # four runs of five-fold cross-validation
+  kmeans_n_init: 10
+  snr_min_db: 10.0            # Sec. 3.1.2 (high-SNR dataset)
+  segment_image_size: 32      # Sec. 3.3.1 (within-token distance)
+  entropy_permutations: 200   # Sec. 3.3.1, Appendix D.3
+
+snr:                          # Sec. 3.1.1, Appendix D.1
+  frame_samples: 512
+
+noise:                        # Sec. 3.3.2
+  seed: 0
+  conditions:                 # name: [low_db, high_db]  (null = unbounded)
+    snr_9_12: [9.0, 12.0]
+    snr_6_9: [6.0, 9.0]
+    snr_3_6: [3.0, 6.0]
+    snr_le_2: [null, 2.0]
+  max_iter: 60
