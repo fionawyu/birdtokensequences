@@ -1,10 +1,13 @@
 # ---- data (never committed) ----
-data/
 datasets/
+datasets_link
+datasets_link/
+Plots_YNCC*/
+yncc/
+yncc_reconstructed_audio/
 *.wav
 *.mp3
 *.flac
-*.ogg
 *.mat
 *.npz
 *.npy
@@ -12,17 +15,19 @@ datasets/
 *.pkl
 *.pkl.gz
 *.zip
-*.tar
-*.tar.gz
-manifest*.csv
 
 # ---- results / outputs (never committed) ----
+1017_*/
+1019_*/
+1115_*/
+all_11/
+diagnosis/
 outputs/
-results/
-runs/
-logs/
-figures/
-plots/
+results*/
+paper_results/
+heldout_cv_evaluation/outputs/
+contour_dtw_baseline/contours/
+contour_dtw_baseline/distance_matrices/
 *.csv
 *.log
 *.out
@@ -36,28 +41,23 @@ plots/
 *.tiff
 *.tex
 *.json
+*.yml
 
 # ---- notes: only README.md is published ----
 *.md
 !README.md
 *.txt
-!requirements*.txt
+!requirements.txt
 
-# ---- environment / tooling ----
+# ---- build / environment ----
+*.so
 __pycache__/
 *.py[cod]
-*.so
-*.egg-info/
-build/
-dist/
+env/
 .venv/
 venv/
-env/
-.pytest_cache/
-.ipynb_checkpoints/
 .idea/
 .vscode/
-.claude/
 *.code-workspace
 .DS_Store
 Thumbs.db

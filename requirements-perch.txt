@@ -1,2 +1,0 @@
-# Only needed for the Perch v2 baseline (scripts/compute_perch_embeddings.py)
-perch-hoplite

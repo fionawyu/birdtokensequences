@@ -4,10 +4,9 @@
 
 This repository contains the code for the paper *Token sequences for bird vocalization classification*. It focuses on:
 
-1. **Segmenting** each bird vocalization into sound segments and silence intervals.
-2. **Synthesizing formulas** that fit the dominant-frequency trajectory of each segment (symbolic regression).
-3. **Mapping formulas to tokens** (`UP`, `DOWN`, `FLAT`, `WIGGLE`, `SILENCE`) to get one token sequence per recording.
-4. **Classifying recordings** by comparing token sequences with edit distance and k-medoids, against shuffled tokens, segment attributes, mean-frequency tokens, Trajectory-DTW, and Perch v2.
+1. **Synthesizing formulas** for the dominant-frequency trajectory of each sound segment of a bird vocalization (genetic programming).
+2. **Mapping formulas to tokens** (`UP`, `DOWN`, `FLAT`, `WIGGLE`, `SILENCE`) to get one token sequence per recording.
+3. **Classifying recordings** by edit distance + k-medoids, and comparing with shuffled tokens, segment attributes, mean-frequency tokens, Trajectory-DTW, and Perch v2.
 
 ---
 
@@ -23,7 +22,8 @@ This repository contains the code for the paper *Token sequences for bird vocali
 
 ### Prerequisites
 
-* Python 3.11
+* Python 3.12
+* A C++20-capable compiler (e.g., `g++`)
 * Linux/macOS shell (bash)
 
 ### Create and activate a virtual environment
@@ -39,144 +39,148 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-Only for the Perch v2 baseline:
+### Compile C++ extensions
+
+Run this in the repository root:
 
 ```bash
-pip install -r requirements-perch.txt
-```
-
-### Check the installation
-
-```bash
-pytest
+bash scripts/build_cpp_extensions.sh
 ```
 
 ---
 
 ## Datasets
 
-The recordings are not included in this repository. Put your audio under `data/audio/` and list it in a manifest file `data/manifest.csv`:
-
-```csv
-recording_id,class,path
-bcch_feebee_001,BCCH/fee-bee,BCCH/feebee/feebee_001.wav
-wtsp_017,WTSP,WTSP/wtsp_017.wav
-```
-
-* `class` must match a class name in `configs/tasks.yaml` (e.g. `BCCH/fee-bee`, `BCCH/tseet`, `BCCH/chick-a-dee`, `TEWA`, `WTSP`, `YWAR`, `YECA/Co`, `YECA/U`, `YECA/RN`, `YECA/SL`).
-* `path` is relative to `data/audio/`.
+The recordings are not included in this repository. Create a folder named `datasets_link` in the project root and place your data inside.
 
 **Expected folder structure**
 
 ```
 birdtokensequences/
-├─ data/
-│  ├─ manifest.csv
-│  └─ audio/
-│     ├─ BCCH/
-│     │  └─ feebee/
-│     │     └─ *.wav
-│     ├─ WTSP/
-│     │  └─ *.wav
-│     └─ ...
+├─ datasets_link/
+│  ├─ Chickadee/              # BCCH chick-a-dee
+│  ├─ Tseet/                  # BCCH tseet
+│  ├─ Feebee/                 # BCCH fee-bee
+│  ├─ WTSP/
+│  └─ step12_clean_selected/
+│     ├─ TEWA/
+│     └─ YWAR/
+├─ Plots_YNCC*/               # Yellow Cardinal dialects (Co, U, RN, SL)
 └─ ...
 ```
 
-> **Note:** `data/` and `outputs/` are ignored by git.
+> **Note:** each `main_*_revised.py` has its `data_path` at the top of the file; change it if your data is somewhere else.
 
 ---
 
 ## How to Run
 
-### 0) Run everything
+### 1) Convert spectrograms to formulae
+
+One script per class; the argument is the random seed (default 47):
 
 ```bash
-bash scripts/run_all.sh
+python main_chickeadee_revised.py 47
+python main_TSEET_revised.py 47
+python main_feebee_revised.py 47
+python main_TEWA_revised.py 47
+python main_WTSP_revised.py 47
+python main_YWAR_revised.py 47
+python main_YNCC_Co_revised.py 47
+python main_YNCC_U_revised.py 47
+python main_YNCC_RN_revised.py 47
+python main_YNCC_SL_revised.py 47
 ```
 
-The steps below run each part separately.
+> **Note:** the segmentation and frequency-band parameters of each class are at the top of its script.
 
-### 1) Keep high-SNR recordings (SNR ≥ 10 dB)
+Collect the output folders as `./1017_all/1017_plots47_<class>_1017`.
+
+### 2) Generate token sequences
 
 ```bash
-python scripts/compute_snr.py --manifest data/manifest.csv --data-root data/audio \
-    --out outputs/manifest_snr.csv --min-snr 10
+python mapString.py
 ```
-
-### 2) Convert recordings to formulas and token sequences
 
 ```bash
-python scripts/extract_tokens.py --manifest outputs/manifest_snr.csv --data-root data/audio \
-    --out outputs/tokens --workers 8
+python build_diagnosis_inputs_from_yml.py --root ./1017_all --out-dir ./diagnosis/chapter1_diagnosis
 ```
 
-> **Note:** each formula is evaluated at one time point per spectrogram frame of its segment.
-
-### 3) Compute Perch v2 embeddings
+### 3) Compute segment attributes
 
 ```bash
-python scripts/compute_perch_embeddings.py --manifest outputs/manifest_snr.csv \
-    --data-root data/audio --out outputs/perch_embeddings.npz
+python scripts/segment_attributes.py \
+    --segments-csv diagnosis/chapter1_diagnosis/segments.csv \
+    --out results_segment_attributes/segment_attributes.csv --verify
 ```
 
-### 4) Compute classification accuracy
+### 4) Compute Trajectory-DTW distances
 
 ```bash
-python scripts/evaluate.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
-    --embeddings outputs/perch_embeddings.npz --out outputs/eval
+python contour_dtw_baseline/extract_contours.py
+python contour_dtw_baseline/compute_dtw.py
 ```
 
-Methods: `token`, `shuffled`, `segment_attributes`, `meanfreq_tokens`, `trajectory_dtw`, `perch_kmeans`, `perch_kmedoids`. Use `--methods` and `--tasks` to run a subset.
-
-### 5) Compute within-token distance and entropy-rate gap
+### 5) Compute Perch v2 embeddings
 
 ```bash
-python scripts/token_metrics.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
-    --out outputs/token_metrics
+python compute_perch_embeddings.py <manifest.tsv> emb_perch_v2_onnx.npz
 ```
 
-### 6) Compute sensitivity to the token-mapping thresholds
+### 6) Compute classification accuracy (four runs of five-fold cross-validation)
 
 ```bash
-python scripts/mapping_sensitivity.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
-    --out outputs/mapping_sensitivity
+python heldout_cv_evaluation/scripts/run_main_cv.py
+python heldout_cv_evaluation/scripts/validate_cv.py
+python heldout_cv_evaluation/scripts/make_outputs.py
+python heldout_cv_evaluation/scripts/make_pooled_confusion.py
 ```
 
-### 7) Run the added-noise experiment (four-species task)
+### 7) Compute mean-frequency tokens, within-token distance and entropy-rate gap
 
 ```bash
-bash scripts/run_noise_experiment.sh
+python scripts/run_chapter1_pitch_diagnostic.py
+python scripts/plot_chapter1_sequence_structure.py
 ```
 
-> **Note:** all hyperparameters are in `configs/default.yaml`; the five tasks are in `configs/tasks.yaml`.
+### 8) Compute sensitivity to the token-mapping thresholds
+
+```bash
+python mapping_rule_sensitivity/scripts/run_sensitivity.py
+```
+
+### 9) Run the added-noise experiment (four-species task)
+
+```bash
+python scripts/screening_sensitivity/compute_snr.py
+python snr_noise_injection_experiment/scripts/build_denoised_baseline.py
+python snr_noise_injection_experiment/scripts/build_full_run.py
+python snr_noise_injection_experiment/scripts/score_full_run.py
+python heldout_cv_evaluation/scripts/run_noise_cv.py
+```
 
 ---
 
 ## Output of the results
 
-### 1) Token sequences
+### 1) Formulae
 
 ```
-outputs/tokens/<recording_id>.json            segments, formulas, tokens, segment attributes
-outputs/tokens/<recording_id>_segments.npy    32 x 32 segment images
+./1017_plots47_<class>_.../<region>/formulae/*_formulae.yml
 ```
 
-### 2) Classification accuracy
+### 2) Token sequences
 
 ```
-outputs/eval/accuracy_table.csv    tasks x methods, mean ± SD (best run)
-outputs/eval/accuracy_table.tex
-outputs/eval/accuracy_long.csv     accuracy of every run
-outputs/eval/predictions.csv       prediction for every recording in every run
-outputs/eval/confusion/            confusion matrices
+./1017_all/1017_plots47_<class>_1017/west/labels/silent/*_decomp.yml
 ```
 
-### 3) Token metrics, sensitivity, and noise
+### 3) Classification accuracy
 
 ```
-outputs/token_metrics/class_metrics.csv
-outputs/mapping_sensitivity/sensitivity_table.csv
-outputs/noise/<condition>/eval/accuracy_table.csv
+heldout_cv_evaluation/outputs/main_datasets/heldout_accuracy_summary.csv
+heldout_cv_evaluation/outputs/tables/heldout_accuracy_table.csv
+heldout_cv_evaluation/outputs/noise_conditions/heldout_accuracy_summary.csv
 ```
 
 ---
