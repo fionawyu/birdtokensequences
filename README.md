@@ -110,19 +110,7 @@ python scripts/extract_tokens.py --manifest outputs/manifest_snr.csv --data-root
     --out outputs/tokens --workers 8
 ```
 
-> **Note:** formulas are evaluated at one time point per spectrogram frame by default (`--time-points frames`).
-
-To use a fixed number of time points, e.g. 8:
-
-```bash
-python scripts/extract_tokens.py ... --time-points 8
-```
-
-To switch modes without refitting the formulas:
-
-```bash
-python scripts/retokenize.py --tokens outputs/tokens --out outputs/tokens_8pts --time-points 8
-```
+> **Note:** each formula is evaluated at one time point per spectrogram frame of its segment.
 
 ### 3) Compute Perch v2 embeddings
 

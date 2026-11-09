@@ -5,7 +5,7 @@ import copy
 import numpy as np
 
 from tokenseq import pipeline
-from tokenseq.config import load_config, parse_time_points
+from tokenseq.config import load_config
 
 
 def synthetic_song(sr=44100):
@@ -23,7 +23,6 @@ def synthetic_song(sr=44100):
 def test_end_to_end(tmp_path):
     cfg = load_config()
     cfg["symbolic_regression"]["generations"] = 30
-    cfg["tokens"]["time_points"] = parse_time_points(cfg["tokens"]["time_points"])
     rec, imgs = pipeline.process_waveform(synthetic_song(), "synthetic", cfg)
 
     kinds = [iv["kind"] for iv in rec["intervals"]]
@@ -38,8 +37,4 @@ def test_end_to_end(tmp_path):
     pipeline.save(rec, imgs, tmp_path)
     assert pipeline.load("synthetic", tmp_path) == rec
 
-    cfg8 = copy.deepcopy(cfg)
-    cfg8["tokens"]["time_points"] = 8
-    rec8 = pipeline.retokenize(rec, cfg8)
-    assert rec8["time_points"] == 8
-    assert len(pipeline.token_sequence(rec8)) == len(seq)
+    assert pipeline.retokenize(rec, copy.deepcopy(cfg)) == rec

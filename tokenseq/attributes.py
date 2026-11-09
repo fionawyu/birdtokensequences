@@ -22,9 +22,9 @@ STATS = ("mean", "std", "min", "max")
 
 
 def segment_attributes(formula: str, n_frames: int, frame_s: float, time_scale: float,
-                       band_hz: tuple[float, float], mode: str | int = "frames") -> dict:
+                       band_hz: tuple[float, float]) -> dict:
     node = F.parse(formula)
-    t = time_points(n_frames, frame_s, time_scale, mode)
+    t = time_points(n_frames, frame_s, time_scale)
     f0, d1, d2 = F.sympy_derivatives(node, t)
 
     khz_per_unit = (band_hz[1] - band_hz[0]) / 1000.0

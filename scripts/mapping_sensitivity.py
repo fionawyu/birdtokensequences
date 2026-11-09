@@ -20,7 +20,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tokenseq import classify, methods, pipeline  # noqa: E402
-from tokenseq.config import load_config, load_tasks, parse_time_points  # noqa: E402
+from tokenseq.config import load_config, load_tasks  # noqa: E402
 from tokenseq.data import read_manifest, task_subset  # noqa: E402
 
 GRID = {
@@ -40,7 +40,6 @@ def main() -> None:
     args = ap.parse_args()
 
     base = load_config(args.config)
-    base["tokens"]["time_points"] = parse_time_points(base["tokens"]["time_points"])
     tasks, ev = load_tasks(args.tasks_config), base["evaluation"]
     df = read_manifest(args.manifest)
 

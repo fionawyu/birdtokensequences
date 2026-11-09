@@ -29,10 +29,6 @@ symbolic_regression:          # Sec. 2.4, Appendix B
   seed: 47
 
 tokens:                       # Sec. 2.5, Table 8
-  # Number of time points at which a formula is evaluated:
-  #   "frames" -> one point per spectrogram frame in the segment (manuscript default)
-  #   an integer, e.g. 8 -> that many uniformly spaced points
-  time_points: frames
   near_zero: 0.0001           # near-zero threshold for time-dependent formulas
   zero_constants: ["0", "0.0", "0.00"]
   flat_range: 0.0001          # initial FLAT range threshold

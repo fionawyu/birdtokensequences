@@ -7,9 +7,6 @@ formulas, tokens, attributes, trajectories) and <recording_id>_segments.npy
 
     python scripts/extract_tokens.py --manifest data/manifest_snr.csv \
         --data-root data/audio --out outputs/tokens --workers 8
-
-    # evaluate formulas at a fixed number of time points instead of one per frame
-    python scripts/extract_tokens.py ... --time-points 8
 """
 
 from __future__ import annotations
@@ -22,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tokenseq import pipeline  # noqa: E402
-from tokenseq.config import load_config, parse_time_points, with_overrides  # noqa: E402
+from tokenseq.config import load_config, with_overrides  # noqa: E402
 from tokenseq.data import audio_path, read_manifest  # noqa: E402
 
 
@@ -41,8 +38,6 @@ def main() -> None:
     ap.add_argument("--data-root", default=None)
     ap.add_argument("--out", required=True)
     ap.add_argument("--config", default=None)
-    ap.add_argument("--time-points", default=None,
-                    help="'frames' (default: one point per spectrogram frame) or an integer, e.g. 8")
     ap.add_argument("--generations", type=int, default=None, help="override the GA generation count")
     ap.add_argument("--seed", type=int, default=None, help="override the GA seed")
     ap.add_argument("--workers", type=int, default=1)
@@ -50,10 +45,7 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = load_config(args.config)
-    tp = parse_time_points(args.time_points) if args.time_points is not None else None
-    cfg = with_overrides(cfg, tokens={"time_points": tp},
-                         symbolic_regression={"generations": args.generations, "seed": args.seed})
-    cfg["tokens"]["time_points"] = parse_time_points(cfg["tokens"]["time_points"])
+    cfg = with_overrides(cfg, symbolic_regression={"generations": args.generations, "seed": args.seed})
 
     out_dir = Path(args.out)
     df = read_manifest(args.manifest)

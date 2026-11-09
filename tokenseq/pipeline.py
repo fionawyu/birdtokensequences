@@ -64,7 +64,7 @@ def process_waveform(y: np.ndarray, recording_id: str, cfg: dict) -> tuple[dict,
             token=tokens.formula_token(fit.formula, iv.n_frames, spec.frame_s,
                                        sr_cfg["time_scale"], tok_cfg),
             attributes=segment_attributes(fit.formula, iv.n_frames, spec.frame_s,
-                                          sr_cfg["time_scale"], band, tok_cfg["time_points"]),
+                                          sr_cfg["time_scale"], band),
         )
         intervals.append(item)
         images.append(resize(sl, img_size).ravel())
@@ -74,7 +74,6 @@ def process_waveform(y: np.ndarray, recording_id: str, cfg: dict) -> tuple[dict,
         "frame_s": spec.frame_s,
         "band_hz": list(band),
         "n_frames": spec.n_frames,
-        "time_points": tok_cfg["time_points"],
         "intervals": intervals,
     }
     imgs = np.stack(images) if images else np.zeros((0, img_size * img_size))
@@ -88,18 +87,16 @@ def process_file(path: str, recording_id: str, cfg: dict) -> tuple[dict, np.ndar
 
 def retokenize(record: dict, cfg: dict) -> dict:
     """Recompute tokens and attributes of a stored record from its formulas
-    (no refitting), e.g. with a different `time_points` mode or thresholds."""
+    (no refitting), e.g. with different mapping thresholds."""
     tok_cfg, scale = cfg["tokens"], cfg["symbolic_regression"]["time_scale"]
     out = json.loads(json.dumps(record))
-    out["time_points"] = tok_cfg["time_points"]
     for iv in out["intervals"]:
         if iv["kind"] != "sound":
             continue
         iv["token"] = tokens.formula_token(iv["formula"], iv["n_frames"], record["frame_s"],
                                            scale, tok_cfg)
         iv["attributes"] = segment_attributes(iv["formula"], iv["n_frames"], record["frame_s"],
-                                              scale, tuple(record["band_hz"]),
-                                              tok_cfg["time_points"])
+                                              scale, tuple(record["band_hz"]))
     return out
 
 

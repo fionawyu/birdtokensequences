@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from tokenseq import classify, formula as F, metrics, segmentation, snr, symbolic_regression as SR, tokens
-from tokenseq.config import load_config, parse_time_points
+from tokenseq.config import load_config
 from tokenseq.distances import levenshtein
 
 CFG = load_config()
@@ -13,7 +13,6 @@ CFG = load_config()
 def tok_cfg(**kw):
     c = copy.deepcopy(CFG["tokens"])
     c.update(kw)
-    c["time_points"] = parse_time_points(c["time_points"])
     return c
 
 
@@ -78,17 +77,13 @@ def test_ga_fits_a_line():
     ("(sin (* 30 t))", tokens.WIGGLE),
 ])
 def test_token_rules(fml, expected):
-    for mode in ("frames", 8):
-        assert tokens.formula_token(fml, 40, 0.0015, 10.0, tok_cfg(time_points=mode)) == expected
+    assert tokens.formula_token(fml, 40, 0.0015, 10.0, tok_cfg()) == expected
 
 
-def test_time_point_modes():
-    assert len(tokens.time_points(57, 0.0015, 10.0, "frames")) == 57
-    assert len(tokens.time_points(57, 0.0015, 10.0, 8)) == 8
-    assert parse_time_points("8") == 8
-    assert parse_time_points("frames") == "frames"
-    with pytest.raises(ValueError):
-        parse_time_points("1")
+def test_one_time_point_per_frame():
+    t = tokens.time_points(57, 0.0015, 10.0)
+    assert len(t) == 57
+    np.testing.assert_allclose(np.diff(t), 0.015)
 
 
 # ---------------------------------------------------------------- segmentation

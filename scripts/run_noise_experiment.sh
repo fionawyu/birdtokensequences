@@ -6,7 +6,6 @@ set -euo pipefail
 DATA_ROOT=${DATA_ROOT:-data/audio}
 OUT=${OUT:-outputs}
 WORKERS=${WORKERS:-8}
-TIME_POINTS=${TIME_POINTS:-frames}
 TASK=four_species
 
 cd "$(dirname "$0")/.."
@@ -17,7 +16,7 @@ python scripts/add_noise.py --manifest "$OUT/manifest_snr.csv" --data-root "$DAT
 for cond_dir in "$OUT"/noise/*/; do
     cond=$(basename "$cond_dir")
     python scripts/extract_tokens.py --manifest "$cond_dir/manifest.csv" \
-        --out "$cond_dir/tokens" --time-points "$TIME_POINTS" --workers "$WORKERS"
+        --out "$cond_dir/tokens" --workers "$WORKERS"
     python scripts/compute_perch_embeddings.py --manifest "$cond_dir/manifest.csv" \
         --out "$cond_dir/perch_embeddings.npz"
     python scripts/evaluate.py --manifest "$cond_dir/manifest.csv" --tokens "$cond_dir/tokens" \

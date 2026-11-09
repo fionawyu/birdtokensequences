@@ -23,18 +23,6 @@ def load_tasks(path: str | Path | None = None) -> dict[str, dict[str, Any]]:
         return yaml.safe_load(f)["tasks"]
 
 
-def parse_time_points(value: str | int) -> str | int:
-    """Return "frames" or a positive integer number of evaluation points."""
-    if isinstance(value, int):
-        if value < 2:
-            raise ValueError("time_points must be 'frames' or an integer >= 2")
-        return value
-    value = str(value).strip().lower()
-    if value == "frames":
-        return "frames"
-    return parse_time_points(int(value))
-
-
 def with_overrides(cfg: dict[str, Any], **sections: dict[str, Any]) -> dict[str, Any]:
     """Return a copy of cfg with section-level overrides, ignoring None values."""
     out = copy.deepcopy(cfg)

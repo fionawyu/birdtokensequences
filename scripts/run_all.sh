@@ -9,7 +9,6 @@ MANIFEST=${MANIFEST:-data/manifest.csv}
 DATA_ROOT=${DATA_ROOT:-data/audio}
 OUT=${OUT:-outputs}
 WORKERS=${WORKERS:-8}
-TIME_POINTS=${TIME_POINTS:-frames}   # "frames" (paper) or an integer, e.g. 8
 
 cd "$(dirname "$0")/.."
 
@@ -19,7 +18,7 @@ python scripts/compute_snr.py --manifest "$MANIFEST" --data-root "$DATA_ROOT" \
 
 # 2. Token sequences (Sec. 2)
 python scripts/extract_tokens.py --manifest "$OUT/manifest_snr.csv" --data-root "$DATA_ROOT" \
-    --out "$OUT/tokens" --time-points "$TIME_POINTS" --workers "$WORKERS"
+    --out "$OUT/tokens" --workers "$WORKERS"
 
 # 3. Perch v2 embeddings (Sec. 3.2.2; needs requirements-perch.txt)
 python scripts/compute_perch_embeddings.py --manifest "$OUT/manifest_snr.csv" \
