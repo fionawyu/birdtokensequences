@@ -1,96 +1,198 @@
-# Token sequences for bird vocalization classification
+# BirdTokenSequences: Token Sequences for Bird Vocalization Classification
 
-Code for the paper *Token sequences for bird vocalization classification*.
+## Overview
 
-Each vocalization is split into sound segments. A formula is fitted to the
-dominant-frequency trajectory of every segment by symbolic regression, and each
-formula is mapped to one of the tokens `UP`, `DOWN`, `FLAT` or `WIGGLE`.
-Silence intervals become `SILENCE`. Recordings are classified by comparing
-their token sequences with edit distance and k-medoids.
+This repository contains the code for the paper *Token sequences for bird vocalization classification*. It focuses on:
 
-## Installation
+1. **Segmenting** each bird vocalization into sound segments and silence intervals.
+2. **Synthesizing formulas** that fit the dominant-frequency trajectory of each segment (symbolic regression).
+3. **Mapping formulas to tokens** (`UP`, `DOWN`, `FLAT`, `WIGGLE`, `SILENCE`) to get one token sequence per recording.
+4. **Classifying recordings** by comparing token sequences with edit distance and k-medoids, against shuffled tokens, segment attributes, mean-frequency tokens, Trajectory-DTW, and Perch v2.
+
+---
+
+## Sources
+
+1. *Identification of dialects and individuals of globally threatened yellow cardinals using neural networks* (Bocaccio et al., 2023)
+2. *Perch 2.0: The bittern lesson for bioacoustics* (van Merriënboer et al., 2025)
+3. *WildTrax* sound archive
+
+---
+
+## Setup
+
+### Prerequisites
+
+* Python 3.11
+* Linux/macOS shell (bash)
+
+### Create and activate a virtual environment
 
 ```bash
-conda create -n tokenseq python=3.11 -y && conda activate tokenseq
-pip install -r requirements.txt
-pip install -r requirements-perch.txt   # only for the Perch v2 baseline
-pytest                                  # unit tests + an end-to-end test on synthetic audio
+python3 -m venv env
+source env/bin/activate
 ```
 
-## Data
+### Install dependencies
 
-The recordings are not distributed with this repository. They come from
-laboratory recordings of Black-capped Chickadees, the WildTrax sound archive
-(TEWA, WTSP, YWAR), and the published Yellow Cardinal dialect recordings
-(Bocaccio et al., 2023). Describe your recordings in a manifest CSV:
+```bash
+pip install -r requirements.txt
+```
+
+Only for the Perch v2 baseline:
+
+```bash
+pip install -r requirements-perch.txt
+```
+
+### Check the installation
+
+```bash
+pytest
+```
+
+---
+
+## Datasets
+
+The recordings are not included in this repository. Put your audio under `data/audio/` and list it in a manifest file `data/manifest.csv`:
 
 ```csv
 recording_id,class,path
-bcch_feebee_001,BCCH/fee-bee,bcch/feebee_001.wav
-wtsp_017,WTSP,wildtrax/wtsp_017.wav
+bcch_feebee_001,BCCH/fee-bee,BCCH/feebee/feebee_001.wav
+wtsp_017,WTSP,WTSP/wtsp_017.wav
 ```
 
-`class` must match the class names in [`configs/tasks.yaml`](configs/tasks.yaml),
-and `path` is relative to `--data-root`.
+* `class` must match a class name in `configs/tasks.yaml` (e.g. `BCCH/fee-bee`, `BCCH/tseet`, `BCCH/chick-a-dee`, `TEWA`, `WTSP`, `YWAR`, `YECA/Co`, `YECA/U`, `YECA/RN`, `YECA/SL`).
+* `path` is relative to `data/audio/`.
 
-## Reproducing the experiments
+**Expected folder structure**
 
-[`scripts/run_all.sh`](scripts/run_all.sh) runs every step below in order:
+```
+birdtokensequences/
+├─ data/
+│  ├─ manifest.csv
+│  └─ audio/
+│     ├─ BCCH/
+│     │  └─ feebee/
+│     │     └─ *.wav
+│     ├─ WTSP/
+│     │  └─ *.wav
+│     └─ ...
+└─ ...
+```
+
+> **Note:** `data/` and `outputs/` are ignored by git.
+
+---
+
+## How to Run
+
+### 0) Run everything
 
 ```bash
-MANIFEST=data/manifest.csv DATA_ROOT=data/audio OUT=outputs bash scripts/run_all.sh
+bash scripts/run_all.sh
 ```
 
-| Step | Script | Paper |
-|---|---|---|
-| SNR and the high-SNR subset (SNR ≥ 10 dB) | `compute_snr.py` | Sec. 3.1, App. D.1 |
-| Spectrograms, segmentation, symbolic regression, tokens, segment attributes | `extract_tokens.py` | Sec. 2.2–2.6 |
-| Perch v2 embeddings | `compute_perch_embeddings.py` | Sec. 3.2.2 |
-| Classification accuracy and confusion matrices | `evaluate.py` | Tables 2, 3, 10 |
-| Within-token distance and entropy-rate gap | `token_metrics.py` | Sec. 3.4.5, Fig. 5, App. D.2–D.3 |
-| Sensitivity to the mapping thresholds | `mapping_sensitivity.py` | App. C.3, Table 9 |
-| Added Gaussian noise (four-species task) | `run_noise_experiment.sh` (uses `add_noise.py`) | Sec. 3.3.2, Tables 4, 11 |
+The steps below run each part separately.
 
-Every method in `evaluate.py` uses the same splits: four runs of stratified
-five-fold cross-validation, with seeds in `configs/default.yaml`. The methods are:
+### 1) Keep high-SNR recordings (SNR ≥ 10 dB)
 
-| Key | Method |
-|---|---|
-| `token` | Token + k-medoids |
-| `shuffled` | Shuffled tokens + k-medoids |
-| `segment_attributes` | Segment attributes (41-dim) + k-medoids |
-| `meanfreq_tokens` | Mean-frequency tertiles in tokens + k-medoids |
-| `trajectory_dtw` | Trajectory-DTW + k-medoids |
-| `perch_kmeans`, `perch_kmedoids` | Perch v2 embeddings + k-means / k-medoids |
+```bash
+python scripts/compute_snr.py --manifest data/manifest.csv --data-root data/audio \
+    --out outputs/manifest_snr.csv --min-snr 10
+```
 
-## Time points for token mapping
+### 2) Convert recordings to formulas and token sequences
 
-The token rules are applied to a formula evaluated at uniformly spaced time
-points over the segment. There are two modes:
+```bash
+python scripts/extract_tokens.py --manifest outputs/manifest_snr.csv --data-root data/audio \
+    --out outputs/tokens --workers 8
+```
 
-* `frames` (default, used in the paper): one point per spectrogram frame of the segment;
-* an integer, e.g. `8`: a fixed number of points per segment.
+> **Note:** formulas are evaluated at one time point per spectrogram frame by default (`--time-points frames`).
+
+To use a fixed number of time points, e.g. 8:
 
 ```bash
 python scripts/extract_tokens.py ... --time-points 8
-python scripts/retokenize.py --tokens outputs/tokens --out outputs/tokens_8pts --time-points 8   # no refitting
 ```
 
-## Configuration
+To switch modes without refitting the formulas:
 
-All hyperparameters are in [`configs/default.yaml`](configs/default.yaml), each
-annotated with the section or table that defines it.
-
-## Repository layout
-
-```
-configs/    hyperparameters and task definitions
-tokenseq/   library: audio, segmentation, formula, symbolic_regression, tokens,
-            attributes, distances, classify, methods, metrics, snr, perch, pipeline
-scripts/    command-line entry points (table above)
-tests/      unit and end-to-end tests
+```bash
+python scripts/retokenize.py --tokens outputs/tokens --out outputs/tokens_8pts --time-points 8
 ```
 
-## License
+### 3) Compute Perch v2 embeddings
 
-MIT, see [LICENSE](LICENSE).
+```bash
+python scripts/compute_perch_embeddings.py --manifest outputs/manifest_snr.csv \
+    --data-root data/audio --out outputs/perch_embeddings.npz
+```
+
+### 4) Compute classification accuracy
+
+```bash
+python scripts/evaluate.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
+    --embeddings outputs/perch_embeddings.npz --out outputs/eval
+```
+
+Methods: `token`, `shuffled`, `segment_attributes`, `meanfreq_tokens`, `trajectory_dtw`, `perch_kmeans`, `perch_kmedoids`. Use `--methods` and `--tasks` to run a subset.
+
+### 5) Compute within-token distance and entropy-rate gap
+
+```bash
+python scripts/token_metrics.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
+    --out outputs/token_metrics
+```
+
+### 6) Compute sensitivity to the token-mapping thresholds
+
+```bash
+python scripts/mapping_sensitivity.py --manifest outputs/manifest_snr.csv --tokens outputs/tokens \
+    --out outputs/mapping_sensitivity
+```
+
+### 7) Run the added-noise experiment (four-species task)
+
+```bash
+bash scripts/run_noise_experiment.sh
+```
+
+> **Note:** all hyperparameters are in `configs/default.yaml`; the five tasks are in `configs/tasks.yaml`.
+
+---
+
+## Output of the results
+
+### 1) Token sequences
+
+```
+outputs/tokens/<recording_id>.json            segments, formulas, tokens, segment attributes
+outputs/tokens/<recording_id>_segments.npy    32 x 32 segment images
+```
+
+### 2) Classification accuracy
+
+```
+outputs/eval/accuracy_table.csv    tasks x methods, mean ± SD (best run)
+outputs/eval/accuracy_table.tex
+outputs/eval/accuracy_long.csv     accuracy of every run
+outputs/eval/predictions.csv       prediction for every recording in every run
+outputs/eval/confusion/            confusion matrices
+```
+
+### 3) Token metrics, sensitivity, and noise
+
+```
+outputs/token_metrics/class_metrics.csv
+outputs/mapping_sensitivity/sensitivity_table.csv
+outputs/noise/<condition>/eval/accuracy_table.csv
+```
+
+---
+
+## Contacts
+
+Please open an issue on GitHub.
