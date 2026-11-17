@@ -1,0 +1,25 @@
+name: Birdsong demo check
+
+on:
+  push:
+    paths:
+      - "examples/**"
+      - ".github/workflows/demo.yml"
+  pull_request:
+    paths:
+      - "examples/**"
+      - ".github/workflows/demo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: node examples/reproduce_demo.cjs
