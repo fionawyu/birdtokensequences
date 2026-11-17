@@ -1,5 +1,7 @@
 # BirdTokenSequences: Token Sequences for Bird Vocalization Classification
 
+[Try the Demo](https://fionawyu.github.io/birdsong-demo/) · Listen to a synthetic phrase, inspect its spectrogram, and compare the original note sequence with a shuffled version.
+
 ## Overview
 
 This repository contains the code for the paper *Token sequences for bird vocalization classification*. It focuses on:
