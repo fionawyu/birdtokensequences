@@ -1,6 +1,24 @@
 # BirdTokenSequences: Token Sequences for Bird Vocalization Classification
 
-[Try the Demo](https://huggingface.co/spaces/fionawyu/birdsong-note-order) · Listen to a synthetic phrase, inspect its spectrogram, and compare the original note sequence with a shuffled version.
+[Try the Demo](https://huggingface.co/spaces/fionawyu/birdsong-note-order) · [Cite the software](CITATION.cff)
+
+## Reproduce the demo
+
+Use Node.js 22 to run the standalone synthetic example and write two WAV files:
+
+```bash
+node examples/reproduce_demo.cjs demo-output
+```
+
+Expected output:
+
+```text
+Original: UP FLAT DOWN WIGGLE
+Shuffled: UP FLAT WIGGLE DOWN
+Edit distance: 2
+```
+
+Open `demo-output/original.wav` and `demo-output/shuffled.wav` to hear both orders. The check uses a fixed shuffle and also verifies the spectrogram, WAV format, and reset. The browser version shuffles on each click. The research experiments and their dataset requirements are described below.
 
 ## Overview
 
