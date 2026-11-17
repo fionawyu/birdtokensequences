@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite the version you used."
 title: "BirdTokenSequences"
 type: software
+version: 0.1.0
 authors:
   - name: "BirdTokenSequences contributors"
 repository-code: "https://github.com/fionawyu/birdtokensequences"
