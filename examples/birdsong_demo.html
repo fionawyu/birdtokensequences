@@ -56,7 +56,7 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 <main>
 <header>
 <h1>When does note order matter?</h1>
-<p>Build a short synthetic birdsong from four designed note shapes, then reorder, add or remove notes. When this page is served by the local pipeline server, you can also send the audio through the Chapter 1 pipeline: genetic-programming formulas, tokens, and a class label.</p>
+<p>Build a short synthetic birdsong from four designed note shapes, then reorder, add or remove notes. Below, see what the Chapter 1 pipeline produced from example songs: the genetic-programming formulas, the tokens, and a class label.</p>
 </header>
 <div class="panels">
 <section class="card" aria-labelledby="audio-heading">
@@ -93,11 +93,12 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 </div>
 
 <section id="pipelinePanel" class="card wide" aria-labelledby="pipeline-heading">
-<h2 id="pipeline-heading">Run the Chapter 1 pipeline <span id="modeBadge" class="badge warn">not available on this hosted page</span></h2>
-<div id="pipelineOffline">
-<p>The labels above are the contours we designed. This hosted page does not run the genetic program. To run the actual Chapter 1 pipeline on the audio you hear, clone the repository, build the C++ extensions, and start <code>python examples/pipeline_server.py</code>; then open the printed local address.</p>
-</div>
+<h2 id="pipeline-heading">Chapter 1 pipeline output <span id="modeBadge" class="badge">recorded runs</span></h2>
+<p>The labels above are the contours we designed. Below are results recorded from real runs of the paper code on three example songs. For each song, the audio rendered by this page was the only input: spectrogram → segments → one genetic-programming search per segment → formulas → tokens → nearest class medoid. This page displays those recorded results; it does not run the genetic program. The runs used GA seed 37, which was not used to build the class medoids. Choose a song to see its run and load it above.</p>
+<div id="recordedButtons" class="controls"></div>
+<p id="recordedNote" class="note"></p>
 <div id="pipelineOnline" hidden>
+<h3>Live run (local pipeline server)</h3>
 <p>The browser sends only the WAV file to the local server; the note labels are not sent. The server runs the paper's code on that audio: spectrogram, segmentation, one genetic-programming search per segment, formula composition, token mapping, and nearest-medoid classification. A run takes about 15–45 seconds per note, depending on the computer.</p>
 <div class="controls">
 <button id="runPipeline" class="primary" type="button">Run pipeline on current audio</button>
@@ -105,6 +106,7 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 <input id="seed" type="number" value="47" min="0" step="1">
 <label class="note" for="upload">or upload a .wav</label>
 <input id="upload" type="file" accept=".wav,audio/wav">
+</div>
 </div>
 <p id="pipelineStatus" class="note" aria-live="polite"></p>
 <pre id="gaTrace" hidden></pre>
@@ -121,9 +123,8 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 <h3>Composed formula</h3>
 <pre id="composedFormula"></pre>
 <p id="pipelineParams" class="note"></p>
-<h3>Consistency checks run on the server</h3>
+<h3>Consistency checks run with the pipeline</h3>
 <ul id="pipelineChecks" class="note"></ul>
-</div>
 </div>
 </section>
 <noscript><p>Enable JavaScript to play and change the example.</p></noscript>
@@ -584,14 +585,38 @@ async function runPipeline(blob, designedLabels) {
   }
 }
 
-if (typeof fetch === "function" && typeof location !== "undefined" && location.protocol.startsWith("http")) {
+function showRecordedRuns(recorded) {
+  const buttons = recorded.runs.map(run => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Song " + run.song + ": " + run.designed_labels.join(" ");
+    button.addEventListener("click", () => {
+      setOriginal(run.designed_labels, "Loaded song " + run.song + ".");
+      pipeline.status.textContent = "Recorded run of song " + run.song + " (GA seed " + recorded.seed + ").";
+      showPipelineResult(run.result, run.designed_labels);
+    });
+    return button;
+  });
+  document.querySelector("#recordedButtons").replaceChildren(...buttons);
+  const first = recorded.runs[0];
+  pipeline.status.textContent = "Recorded run of song " + first.song + " (GA seed " + recorded.seed + ").";
+  showPipelineResult(first.result, first.designed_labels);
+}
+
+if (typeof fetch === "function" && typeof location !== "undefined") {
+  fetch("pipeline_recorded.json").then(r => r.ok ? r.json() : Promise.reject())
+    .then(showRecordedRuns)
+    .catch(() => {
+      document.querySelector("#recordedNote").textContent = "The recorded runs (pipeline_recorded.json) could not be loaded. Serve this page over HTTP next to that file.";
+    });
+}
+// Only probe for the local server on this computer, so the hosted page makes no extra requests.
+if (typeof fetch === "function" && typeof location !== "undefined" && ["127.0.0.1", "localhost"].includes(location.hostname)) {
   fetch("/api/health").then(r => r.ok ? r.json() : null).then(health => {
     if (!health || !health.pipeline) return;
-    document.querySelector("#pipelineOffline").hidden = true;
     document.querySelector("#pipelineOnline").hidden = false;
     const badge = document.querySelector("#modeBadge");
-    badge.textContent = "local pipeline server";
-    badge.className = "badge";
+    badge.textContent = "recorded runs + local pipeline server";
     pipeline.run.addEventListener("click", () => runPipeline(audioBlob, current.slice()));
     pipeline.upload.addEventListener("change", () => {
       const file = pipeline.upload.files[0];

@@ -25,6 +25,7 @@ from urllib.parse import parse_qs, urlparse
 import pipeline_runner
 
 PAGE = Path(__file__).resolve().parent / "birdsong_demo.html"
+RECORDED = Path(__file__).resolve().parent / "pipeline_recorded.json"
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 jobs: dict[str, dict] = {}
@@ -64,6 +65,13 @@ class Handler(BaseHTTPRequestHandler):
             body = PAGE.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif url.path == "/pipeline_recorded.json" and RECORDED.exists():
+            body = RECORDED.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)

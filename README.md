@@ -24,6 +24,8 @@ Duration: 1.74 s
 
 The audio is 1.74 s long. Browser audio players may display it as `0:01`.
 
+The page also shows recorded pipeline runs on three example songs, read from `examples/pipeline_recorded.json`: the GA formula for each segment, the mapping rule behind each token, the token sequence, and the class label. These are outputs of real runs (GA seed 37), not computed in the browser. Regenerate them with `python examples/record_runs.py` after building the reference classes (below).
+
 **Local pipeline mode.** After the setup below (Python dependencies and C++ extensions), run:
 
 ```bash

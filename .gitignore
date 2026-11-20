@@ -64,3 +64,4 @@ Thumbs.db
 
 # ---- demo reference classes (built by examples/build_references.py) ----
 !examples/pipeline_references.json
+!examples/pipeline_recorded.json
