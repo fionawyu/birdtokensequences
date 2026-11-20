@@ -4,7 +4,9 @@
 
 ## Reproduce the demo
 
-Use Node.js 22 to run the standalone synthetic example and write two WAV files:
+The demo has two modes.
+
+**Hosted page (no pipeline).** [The Space](https://huggingface.co/spaces/fionawyu/birdsong-note-order) and `examples/birdsong_demo.html` render four designed note contours (`UP`, `FLAT`, `DOWN`, `WIGGLE`) as sound. You can shuffle, add, or remove notes, reset, and generate a new original sequence. The labels shown are the designed contours, not pipeline output. The comparison message is computed from both sequences: it reports the edit distance and whether the note inventory (types and counts) changed. Check it with Node.js 20 or later:
 
 ```bash
 node examples/reproduce_demo.cjs demo-output
@@ -14,11 +16,29 @@ Expected output:
 
 ```text
 Original: UP FLAT DOWN WIGGLE
-Shuffled: UP FLAT WIGGLE DOWN
-Edit distance: 2
+Shuffled: UP FLAT WIGGLE DOWN (edit distance 2, same notes)
+Added and removed: UP UP FLAT DOWN (edit distance 2, different notes)
+New original: UP UP UP FLAT
+Duration: 1.74 s
 ```
 
-Open `demo-output/original.wav` and `demo-output/shuffled.wav` to hear both orders. The check uses a fixed shuffle and also verifies the spectrogram, WAV format, and reset. The browser version shuffles on each click. The research experiments and their dataset requirements are described below.
+The audio is 1.74 s long. Browser audio players may display it as `0:01`.
+
+**Local pipeline mode.** After the setup below (Python dependencies and C++ extensions), run:
+
+```bash
+python examples/build_references.py   # once: GA runs on three synthetic song classes
+python examples/pipeline_server.py    # then open http://127.0.0.1:8000
+```
+
+The page sends only the WAV file (the audio you hear, or an uploaded `.wav`) to the local server. The server runs the paper code on it: `process_spectrogram`, `getSpecSegments_smooth`, one `geneticProgram` search per segment, `composeFinalFml`, `mapString.decompose_fmls`, and nearest-medoid classification by edit distance. The page shows the GA progress, the formula found for each segment, the mapping rule that produced each token, the token sequence, and the class label. The demo uses the settings of `main_chickeadee_revised.py`. To run a single file without the browser:
+
+```bash
+node examples/render_sequence.cjs "UP FLAT DOWN WIGGLE" song.wav
+python examples/pipeline_runner.py song.wav --seed 47
+```
+
+The research experiments and their dataset requirements are described below.
 
 ## Overview
 

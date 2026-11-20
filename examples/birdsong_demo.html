@@ -3,36 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="An interactive BirdTokenSequences example by Yu Wang. Hear and compare two birdsong sequences built from the same notes.">
+<meta name="description" content="An interactive BirdTokenSequences example by Yu Wang. Build a synthetic birdsong, change its notes, and, when run locally, send the audio through the Chapter 1 pipeline.">
 <title>When does note order matter? | Yu Wang</title>
 <style>
-:root{color-scheme:light;--paper:#f7f6f0;--ink:#17362e;--sub:#4a6258;--line:#ced8ce;--white:#fffefa;--accent:#bce4bd}
+:root{color-scheme:light;--paper:#f7f6f0;--ink:#17362e;--sub:#4a6258;--line:#ced8ce;--white:#fffefa;--accent:#bce4bd;--warn:#8a4b12}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}
-main,nav{max-width:1010px;margin:auto;padding-inline:clamp(18px,5vw,54px)}
+main,nav{max-width:1060px;margin:auto;padding-inline:clamp(18px,5vw,54px)}
 nav{display:flex;gap:1rem;justify-content:space-between;padding-block:18px;border-bottom:1px solid var(--line);font-size:.91rem}
 a{color:inherit;text-underline-offset:.16em}
-a:focus-visible,button:focus-visible{outline:3px solid #287448;outline-offset:4px}
-header{padding-block:clamp(26px,7vw,66px) 25px}
-h1,h2,p{margin:0}
-h1{font:500 clamp(2.7rem,6.7vw,5.6rem)/.99 Georgia,serif;letter-spacing:-.06em;max-width:15ch;margin-bottom:.27em}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #287448;outline-offset:3px}
+header{padding-block:clamp(26px,6vw,58px) 22px}
+h1,h2,h3,p{margin:0}
+h1{font:500 clamp(2.5rem,6.2vw,5.2rem)/.99 Georgia,serif;letter-spacing:-.06em;max-width:15ch;margin-bottom:.27em}
 h2{font-size:1.08rem;line-height:1.3}
-header p{max-width:68ch;color:var(--sub)}
+h3{font-size:.95rem;margin-top:1rem}
+header p{max-width:70ch;color:var(--sub)}
 .panels{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px}
 .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,3vw,25px);min-width:0}
-.card p{color:var(--sub);font-size:.9rem}
+.card p,.note{color:var(--sub);font-size:.9rem}
+.wide{margin-top:16px}
 audio{display:block;width:100%;margin-top:12px}
 canvas{width:100%;height:auto;display:block;margin:12px 0 0;background:#142e29;border-radius:7px}
 .tokens{display:flex;gap:6px;flex-wrap:wrap;margin:.38rem 0 1rem;padding:0;list-style:none}
 .token{background:#edf2e9;padding:.24rem .43rem;border:1px solid transparent;border-radius:5px;font:600 .8rem ui-monospace,monospace}
 .token.playing{border-color:#287448;background:var(--accent)}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin:.9rem 0}
-button{border:1px solid var(--line);border-radius:7px;padding:.53rem .7rem;font:600 .84rem Inter,system-ui,sans-serif;background:var(--white);color:var(--ink);cursor:pointer}
+.token.zero{opacity:.55}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:.7rem 0;align-items:center}
+button,select,input{border:1px solid var(--line);border-radius:7px;padding:.5rem .65rem;font:600 .84rem Inter,system-ui,sans-serif;background:var(--white);color:var(--ink)}
+button{cursor:pointer}
+input[type=text]{font:500 .84rem ui-monospace,monospace;min-width:0;flex:1}
+input[type=number]{width:5.5rem}
 button.primary{background:var(--ink);color:white;border-color:var(--ink)}
 button:disabled{opacity:.54;cursor:default}
-#comparison{font-variant-numeric:tabular-nums;padding-top:.72rem;border-top:1px solid var(--line)}
-footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:80ch}
-@media(max-width:680px){.panels{grid-template-columns:1fr}nav{font-size:.82rem}}
+#comparison{font-variant-numeric:tabular-nums;padding-top:.72rem;border-top:1px solid var(--line);color:var(--ink)}
+.badge{display:inline-block;font:600 .75rem ui-monospace,monospace;padding:.15rem .45rem;border-radius:5px;background:#edf2e9}
+.badge.warn{background:#f6e7d3;color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-size:.84rem;margin-top:.6rem}
+th,td{text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--line);vertical-align:top}
+td code,pre{font:500 .78rem ui-monospace,monospace;word-break:break-all;white-space:pre-wrap}
+pre{background:#edf2e9;padding:.6rem;border-radius:7px;margin:.4rem 0 0}
+img#pipelineFigure{width:100%;margin-top:.8rem;border-radius:7px}
+footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
+@media(max-width:720px){.panels{grid-template-columns:1fr}nav{font-size:.82rem}}
 </style>
 </head>
 <body>
@@ -43,30 +56,79 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:80ch}
 <main>
 <header>
 <h1>When does note order matter?</h1>
-<p>Listen to a short synthetic birdsong, then shuffle its notes. The same note shapes can form a different sequence.</p>
+<p>Build a short synthetic birdsong from four designed note shapes, then reorder, add or remove notes. When this page is served by the local pipeline server, you can also send the audio through the Chapter 1 pipeline: genetic-programming formulas, tokens, and a class label.</p>
 </header>
 <div class="panels">
 <section class="card" aria-labelledby="audio-heading">
 <h2 id="audio-heading">Listen and inspect</h2>
 <audio id="audio" controls preload="auto" aria-label="Play current note sequence"></audio>
+<p id="duration" class="note"></p>
 <canvas id="spectrum" width="720" height="285" role="img" aria-label="Spectrogram of the current audio. The horizontal axis is time in seconds, and the vertical axis is frequency in kilohertz."></canvas>
+<p class="note">This spectrogram is computed in your browser for display only. The pipeline computes its own spectrogram from the WAV file.</p>
 </section>
 <section class="card" aria-labelledby="order-heading">
-<h2 id="order-heading">Compare the sequences</h2>
+<h2 id="order-heading">Change the sequence</h2>
 <div class="controls">
 <button id="shuffle" class="primary" type="button">Shuffle note order</button>
-<button id="reset" type="button" disabled>Reset</button>
+<select id="noteType" aria-label="Note type to add"></select>
+<button id="add" type="button">Add note</button>
+<button id="remove" type="button">Remove a note</button>
 </div>
-<p>Original sequence</p>
+<div class="controls">
+<button id="reset" type="button" disabled>Reset to original</button>
+<button id="newOriginal" type="button">New original sequence</button>
+</div>
+<div class="controls">
+<input id="customOriginal" type="text" aria-label="Custom original sequence" placeholder="e.g. UP UP UP FLAT">
+<button id="useCustom" type="button">Use as original</button>
+</div>
+<p>Original sequence <span class="badge">designed labels</span></p>
 <ol id="original" class="tokens"></ol>
-<p>Current sequence</p>
+<p>Current sequence <span class="badge">designed labels</span></p>
 <ol id="current" class="tokens"></ol>
+<p id="lastAction" class="note" aria-live="polite"></p>
 <p id="comparison" aria-live="polite"></p>
+<p id="inventory" class="note"></p>
 </section>
 </div>
-<noscript><p>Enable JavaScript to play and shuffle the example.</p></noscript>
+
+<section id="pipelinePanel" class="card wide" aria-labelledby="pipeline-heading">
+<h2 id="pipeline-heading">Run the Chapter 1 pipeline <span id="modeBadge" class="badge warn">not available on this hosted page</span></h2>
+<div id="pipelineOffline">
+<p>The labels above are the contours we designed. This hosted page does not run the genetic program. To run the actual Chapter 1 pipeline on the audio you hear, clone the repository, build the C++ extensions, and start <code>python examples/pipeline_server.py</code>; then open the printed local address.</p>
+</div>
+<div id="pipelineOnline" hidden>
+<p>The browser sends only the WAV file to the local server; the note labels are not sent. The server runs the paper's code on that audio: spectrogram, segmentation, one genetic-programming search per segment, formula composition, token mapping, and nearest-medoid classification. A run takes about 15–45 seconds per note, depending on the computer.</p>
+<div class="controls">
+<button id="runPipeline" class="primary" type="button">Run pipeline on current audio</button>
+<label class="note" for="seed">GA seed</label>
+<input id="seed" type="number" value="47" min="0" step="1">
+<label class="note" for="upload">or upload a .wav</label>
+<input id="upload" type="file" accept=".wav,audio/wav">
+</div>
+<p id="pipelineStatus" class="note" aria-live="polite"></p>
+<pre id="gaTrace" hidden></pre>
+<div id="pipelineResult" hidden>
+<h3>Token sequence produced by the pipeline</h3>
+<ol id="pipelineTokens" class="tokens"></ol>
+<p id="tokenCheck" class="note"></p>
+<h3>Class label</h3>
+<p id="classLabel"></p>
+<table><thead><tr><th>Class</th><th>Medoid token sequence (from GA runs on that class's reference song)</th><th>Edit distance</th></tr></thead><tbody id="classTable"></tbody></table>
+<h3>GA formulas per segment</h3>
+<table><thead><tr><th>#</th><th>Time (s)</th><th>Best formula found by GA (t in pipeline time units)</th><th>GA loss</th><th>Token</th><th>Mapping rule that fired</th></tr></thead><tbody id="segmentTable"></tbody></table>
+<img id="pipelineFigure" alt="Top: denoised spectrogram with the detected segments. Bottom: spectrogram drawn from the fitted formulas.">
+<h3>Composed formula</h3>
+<pre id="composedFormula"></pre>
+<p id="pipelineParams" class="note"></p>
+<h3>Consistency checks run on the server</h3>
+<ul id="pipelineChecks" class="note"></ul>
+</div>
+</div>
+</section>
+<noscript><p>Enable JavaScript to play and change the example.</p></noscript>
 <footer>
-<p>This teaching example renders four designed frequency contours as sound and computes their spectrogram. The labels describe the known contours. See the <a href="https://github.com/fionawyu/birdtokensequences#overview" target="_blank" rel="noopener noreferrer">research pipeline</a> for how the project estimates contours and assigns tokens to field recordings.</p>
+<p>Each note is a designed frequency contour rendered as a tone: UP rises, FLAT stays at one frequency, DOWN falls, WIGGLE oscillates. These names describe what we drew, so they are an answer key, not a measurement. The pipeline names a note from the formula the genetic program fits to the spectrogram, so it can disagree with the designed name. See the <a href="https://github.com/fionawyu/birdtokensequences#overview" target="_blank" rel="noopener noreferrer">research pipeline</a> for details.</p>
 </footer>
 </main>
 <script>
@@ -75,14 +137,29 @@ const sampleRate = 16000;
 const startGap = .15;
 const endGap = .16;
 const noteGap = .11;
-const notes = [
-  {label:"UP", seconds:.27, frequency:t => 2150 + 1640*t},
-  {label:"FLAT", seconds:.22, frequency:() => 4200},
-  {label:"DOWN", seconds:.29, frequency:t => 4740 - 1960*t},
-  {label:"WIGGLE", seconds:.32, frequency:t => 3380 + 510*Math.sin(4*Math.PI*t)}
-];
+// Designed contours. The label is the name we gave the contour, not a measurement.
+const NOTE_TYPES = {
+  UP:     {seconds:.27, frequency:t => 2150 + 1640*t},
+  FLAT:   {seconds:.22, frequency:() => 4200},
+  DOWN:   {seconds:.29, frequency:t => 4740 - 1960*t},
+  WIGGLE: {seconds:.32, frequency:t => 3380 + 510*Math.sin(4*Math.PI*t)}
+};
+const NOTE_NAMES = Object.keys(NOTE_TYPES);
+const FIRST_ORIGINAL = ["UP", "FLAT", "DOWN", "WIGGLE"];
+const MIN_NEW_LENGTH = 3;
+const MAX_NEW_LENGTH = 6;
+const MAX_LENGTH = 10;
 
-function renderPhrase(sequence) {
+function check(condition, message) {
+  if (!condition) throw new Error("Demo check failed: " + message);
+}
+
+function renderPhrase(labels) {
+  check(labels.length > 0, "a phrase needs at least one note");
+  const sequence = labels.map(label => {
+    check(label in NOTE_TYPES, "unknown note " + label);
+    return NOTE_TYPES[label];
+  });
   const duration = startGap + endGap + sequence.reduce((sum, note) => sum + note.seconds, 0)
     + noteGap * (sequence.length - 1);
   const signal = new Float32Array(Math.round(duration * sampleRate));
@@ -101,6 +178,7 @@ function renderPhrase(sequence) {
     start += note.seconds + noteGap;
     return interval;
   });
+  check(intervals[intervals.length-1].last <= signal.length/sampleRate, "the last note must end inside the audio");
   return {signal, intervals, duration:signal.length/sampleRate};
 }
 
@@ -119,6 +197,8 @@ function wav(signal) {
   return new Blob([bytes], {type:"audio/wav"});
 }
 
+// Levenshtein distance with unit insertion, deletion and substitution,
+// the same rule as the paper's classifier (heldout_cv_evaluation/scripts/methods.py).
 function distance(first, second) {
   let previous = Array.from({length:second.length+1}, (_, i) => i);
   first.forEach((label, i) => {
@@ -129,6 +209,75 @@ function distance(first, second) {
     previous = current;
   });
   return previous[second.length];
+}
+
+function counts(labels) {
+  const result = {};
+  for (const label of labels) result[label] = (result[label] || 0) + 1;
+  return result;
+}
+
+function describeInventory(labels) {
+  const c = counts(labels);
+  return NOTE_NAMES.filter(name => c[name]).map(name => name + " ×" + c[name]).join(", ");
+}
+
+// The conclusion is computed from both sequences; nothing here is a fixed sentence
+// chosen by which button was pressed.
+function compareSequences(original, current) {
+  const edits = distance(original, current);
+  const before = counts(original);
+  const after = counts(current);
+  const added = [];
+  const removed = [];
+  for (const name of NOTE_NAMES) {
+    const change = (after[name] || 0) - (before[name] || 0);
+    if (change > 0) added.push(change + "× " + name);
+    if (change < 0) removed.push(-change + "× " + name);
+  }
+  const sameInventory = added.length === 0 && removed.length === 0;
+  check(edits >= Math.abs(original.length - current.length), "edit distance is at least the length difference");
+  check(!sameInventory || original.length === current.length, "same inventory implies same length");
+  check((edits === 0) === (original.join(" ") === current.join(" ")), "edit distance is 0 exactly when the sequences match");
+  let text;
+  if (edits === 0) {
+    text = "Edit distance: 0. The current sequence is the original.";
+  } else if (sameInventory) {
+    text = "Edit distance: " + edits + ". Same notes: every note type appears as often as in the original, so only the order changed.";
+  } else {
+    text = "Edit distance: " + edits + ". The notes differ from the original ("
+      + [added.length ? "added " + added.join(", ") : "", removed.length ? "removed " + removed.join(", ") : ""]
+        .filter(Boolean).join("; ")
+      + "). Edit distance also counts insertions and deletions, so a nonzero distance by itself does not mean the notes were reordered.";
+  }
+  return {edits, sameInventory, added, removed, text};
+}
+
+function shuffled(labels) {
+  if (new Set(labels).size < 2) return null; // no other order exists
+  let candidate;
+  do {
+    candidate = labels.slice();
+    for (let i = candidate.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [candidate[i],candidate[j]] = [candidate[j],candidate[i]];
+    }
+  } while (candidate.join(" ") === labels.join(" "));
+  return candidate;
+}
+
+function randomSequence() {
+  const length = MIN_NEW_LENGTH + Math.floor(Math.random()*(MAX_NEW_LENGTH - MIN_NEW_LENGTH + 1));
+  return Array.from({length}, () => NOTE_NAMES[Math.floor(Math.random()*NOTE_NAMES.length)]);
+}
+
+function parseSequence(text) {
+  const labels = text.toUpperCase().split(/[\s,]+/).filter(Boolean);
+  const unknown = labels.filter(label => !(label in NOTE_TYPES));
+  if (unknown.length) return {error:"Unknown note: " + unknown.join(", ") + ". Use " + NOTE_NAMES.join(", ") + "."};
+  if (labels.length === 0) return {error:"Type at least one note."};
+  if (labels.length > MAX_LENGTH) return {error:"Use at most " + MAX_LENGTH + " notes."};
+  return {labels};
 }
 
 const fftWidth = 256;
@@ -161,6 +310,16 @@ function spectrogram(signal) {
   return image;
 }
 
+// Time ticks always end at the real duration, so the axis cannot suggest a
+// different length than the audio.
+function timeTicks(duration) {
+  const step = duration <= 2.5 ? .25 : .5;
+  const ticks = [];
+  for (let t = 0; t < duration - step/2; t += step) ticks.push(Math.round(t*100)/100);
+  ticks.push(duration);
+  return ticks;
+}
+
 const audio = document.querySelector("#audio");
 const canvas = document.querySelector("#spectrum");
 const ctx = canvas.getContext("2d");
@@ -171,10 +330,21 @@ const plot = {left:57, top:15, width:640, height:224};
 const originalList = document.querySelector("#original");
 const currentList = document.querySelector("#current");
 const comparison = document.querySelector("#comparison");
-const shuffle = document.querySelector("#shuffle");
-const reset = document.querySelector("#reset");
-let current = notes.slice();
+const inventory = document.querySelector("#inventory");
+const lastAction = document.querySelector("#lastAction");
+const durationText = document.querySelector("#duration");
+const shuffleButton = document.querySelector("#shuffle");
+const addButton = document.querySelector("#add");
+const removeButton = document.querySelector("#remove");
+const noteType = document.querySelector("#noteType");
+const resetButton = document.querySelector("#reset");
+const newOriginalButton = document.querySelector("#newOriginal");
+const customOriginal = document.querySelector("#customOriginal");
+const useCustomButton = document.querySelector("#useCustom");
+let original = FIRST_ORIGINAL.slice();
+let current = original.slice();
 let phrase;
+let audioBlob;
 let audioUrl;
 let chips;
 
@@ -189,15 +359,18 @@ function drawPlot() {
   backing.fillRect(0,0,cached.width,cached.height);
   backing.drawImage(tile,plot.left,plot.top,plot.width,plot.height);
   backing.fillStyle = "#e2efe2";
-  backing.font = "17px system-ui";
+  backing.font = "15px system-ui";
   backing.textAlign = "right";
   for (const kHz of [0,2,4,6]) {
     backing.fillText(kHz+"k", plot.left-7, plot.top+plot.height*(1-kHz/6)+5);
   }
-  backing.textAlign = "center";
-  for (const seconds of [0,.5,1,1.5]) {
-    backing.fillText(seconds.toFixed(1)+" s",plot.left+seconds/phrase.duration*plot.width,plot.top+plot.height+27);
-  }
+  const ticks = timeTicks(phrase.duration);
+  ticks.forEach((seconds, i) => {
+    const last = i === ticks.length-1;
+    backing.textAlign = last ? "right" : "center";
+    const label = last ? seconds.toFixed(2)+" s" : String(seconds);
+    backing.fillText(label, plot.left+seconds/phrase.duration*plot.width, plot.top+plot.height+27);
+  });
   paintPlayhead();
 }
 
@@ -214,52 +387,218 @@ function paintPlayhead() {
   });
 }
 
-function writeTokens(list, sequence) {
-  const items = sequence.map(note => {
+function writeTokens(list, labels, className) {
+  const items = labels.map(label => {
     const item = document.createElement("li");
-    item.className = "token";
-    item.textContent = note.label;
+    item.className = "token" + (className ? " " + className(label) : "");
+    item.textContent = label;
     return item;
   });
   list.replaceChildren(...items);
   return items;
 }
 
-function update(sequence) {
-  const originalLabels = notes.map(note => note.label);
-  const currentLabels = sequence.map(note => note.label);
-  const edits = distance(originalLabels,currentLabels);
+function update(sequence, action) {
   current = sequence;
   phrase = renderPhrase(sequence);
+  check(Math.abs(phrase.duration*sampleRate - phrase.signal.length) < 1e-6, "duration matches the number of samples");
   audio.pause();
   if (audioUrl) URL.revokeObjectURL(audioUrl);
-  audioUrl = URL.createObjectURL(wav(phrase.signal));
+  audioBlob = wav(phrase.signal);
+  audioUrl = URL.createObjectURL(audioBlob);
   audio.src = audioUrl;
-  chips = writeTokens(currentList,sequence);
-  comparison.textContent = "Edit distance: " + edits + ". " + (edits === 0
-    ? "The sequences match."
-    : "The note inventory is the same, and the order has changed.");
-  reset.disabled = edits === 0;
+  writeTokens(originalList, original);
+  chips = writeTokens(currentList, sequence);
+  const result = compareSequences(original, sequence);
+  comparison.textContent = result.text;
+  inventory.textContent = "Original notes: " + describeInventory(original) + ". Current notes: " + describeInventory(sequence) + ".";
+  durationText.textContent = "Duration: " + phrase.duration.toFixed(2) + " s (" + phrase.signal.length
+    + " samples at " + sampleRate/1000 + " kHz). The audio player may round this down to whole seconds.";
+  lastAction.textContent = action || "";
+  resetButton.disabled = result.edits === 0;
+  shuffleButton.disabled = new Set(sequence).size < 2;
+  removeButton.disabled = sequence.length <= 1;
+  addButton.disabled = sequence.length >= MAX_LENGTH;
   drawPlot();
+  return result;
 }
 
-shuffle.addEventListener("click", () => {
-  let candidate;
-  do {
-    candidate = notes.slice();
-    for (let i = candidate.length-1; i > 0; i--) {
-      const j = Math.floor(Math.random()*(i+1));
-      [candidate[i],candidate[j]] = [candidate[j],candidate[i]];
-    }
-  } while (candidate.every((note,i) => note === notes[i]) || candidate.every((note,i) => note === current[i]));
-  update(candidate);
+function setOriginal(labels, action) {
+  original = labels.slice();
+  update(original.slice(), action);
+}
+
+noteType.replaceChildren(...NOTE_NAMES.map(name => {
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = name;
+  return option;
+}));
+noteType.value = NOTE_NAMES[0];
+
+shuffleButton.addEventListener("click", () => {
+  const candidate = shuffled(current);
+  if (candidate) update(candidate, "Shuffled the current notes.");
 });
-reset.addEventListener("click", () => update(notes.slice()));
+addButton.addEventListener("click", () => {
+  const label = noteType.value || NOTE_NAMES[0];
+  const position = Math.floor(Math.random()*(current.length + 1));
+  const next = current.slice();
+  next.splice(position, 0, label);
+  update(next, "Added " + label + " at position " + (position + 1) + ".");
+});
+removeButton.addEventListener("click", () => {
+  const position = Math.floor(Math.random()*current.length);
+  const next = current.slice();
+  const [label] = next.splice(position, 1);
+  update(next, "Removed " + label + " from position " + (position + 1) + ".");
+});
+resetButton.addEventListener("click", () => update(original.slice(), "Reset to the original."));
+newOriginalButton.addEventListener("click", () => setOriginal(randomSequence(), "Generated a new original sequence."));
+useCustomButton.addEventListener("click", () => {
+  const parsed = parseSequence(customOriginal.value || "");
+  if (parsed.error) { lastAction.textContent = parsed.error; return; }
+  setOriginal(parsed.labels, "Set a custom original sequence.");
+});
 for (const event of ["timeupdate","seeked","play","pause","ended"]) {
   audio.addEventListener(event,paintPlayhead);
 }
-writeTokens(originalList,notes);
-update(notes.slice());
+update(original.slice());
+
+// ---------------------------------------------------------------------------
+// Local pipeline mode. Only active when the page is served by
+// examples/pipeline_server.py, which answers /api/health.
+// ---------------------------------------------------------------------------
+const pipeline = {
+  status: document.querySelector("#pipelineStatus"),
+  trace: document.querySelector("#gaTrace"),
+  result: document.querySelector("#pipelineResult"),
+  run: document.querySelector("#runPipeline"),
+  upload: document.querySelector("#upload"),
+  seed: document.querySelector("#seed")
+};
+
+function addRow(body, cells) {
+  const row = document.createElement("tr");
+  for (const cell of cells) {
+    const td = document.createElement("td");
+    if (cell && cell.code) {
+      const code = document.createElement("code");
+      code.textContent = cell.code;
+      td.append(code);
+    } else {
+      td.textContent = cell;
+    }
+    row.append(td);
+  }
+  body.append(row);
+}
+
+function showPipelineResult(result, designedLabels) {
+  pipeline.result.hidden = false;
+  const tokens = result.token_sequence;
+  writeTokens(document.querySelector("#pipelineTokens"), tokens, label => label === "ZERO" ? "zero" : "");
+  const notes = result.note_tokens;
+  let checkText = "ZERO marks a silent gap. Note tokens only: " + notes.join(" ") + ".";
+  if (designedLabels) {
+    const agree = notes.length === designedLabels.length
+      ? designedLabels.filter((label, i) => label === notes[i]).length : null;
+    checkText += " Designed labels: " + designedLabels.join(" ") + ". "
+      + (agree === null
+        ? "The pipeline found " + notes.length + " segments for " + designedLabels.length + " designed notes."
+        : agree + " of " + designedLabels.length + " note tokens match the designed labels.");
+  }
+  document.querySelector("#tokenCheck").textContent = checkText;
+  const label = document.querySelector("#classLabel");
+  const classTable = document.querySelector("#classTable");
+  classTable.replaceChildren();
+  if (result.classification) {
+    const c = result.classification;
+    label.textContent = "Predicted class: " + c.predicted_class + " (nearest medoid, edit distance "
+      + c.distance + "). Classes are synthetic song types defined in examples/pipeline_references.json.";
+    c.medoids.forEach(m => addRow(classTable, [m.class, {code:m.tokens.join(" ")}, String(m.distance)]));
+  } else {
+    label.textContent = "No reference classes found. Run python examples/build_references.py to create them.";
+  }
+  const segmentTable = document.querySelector("#segmentTable");
+  segmentTable.replaceChildren();
+  result.segments.forEach((s, i) => addRow(segmentTable, [
+    String(i + 1), s.start_s.toFixed(3) + "–" + s.end_s.toFixed(3),
+    {code:s.formula}, s.ga_best_loss === null ? "–" : s.ga_best_loss.toFixed(4), s.token, s.rule
+  ]));
+  document.querySelector("#pipelineFigure").src = "data:image/png;base64," + result.figure_png_base64;
+  document.querySelector("#composedFormula").textContent = result.composed_formula;
+  document.querySelector("#pipelineChecks").replaceChildren(...result.checks.map(c => {
+    const item = document.createElement("li");
+    item.textContent = (c.passed ? "passed: " : "FAILED: ") + c.check;
+    return item;
+  }));
+  const p = result.parameters;
+  document.querySelector("#pipelineParams").textContent = "Settings from " + p.config + ": band "
+    + p.lyFreqlim + "–" + p.uyFreqlim + " Hz, population " + p.popSize + ", " + p.numGenLim
+    + " generations per segment, maximum formula size " + p.fmlSizeLim + ", seed " + p.seed
+    + ", times_extended " + p.times_extended + " (formula time t = 10 × seconds from the segment start). "
+    + "Candidates evaluated: " + p.candidates_evaluated + "; run time " + result.elapsed_seconds.toFixed(1) + " s.";
+}
+
+async function pollJob(id, designedLabels) {
+  for (;;) {
+    const job = await (await fetch("/api/jobs/" + id)).json();
+    if (job.status === "error") throw new Error(job.error);
+    const g = job.progress;
+    if (g && g.segment) {
+      pipeline.status.textContent = "Genetic program: segment " + g.segment + " of " + g.n_segments
+        + ", generation " + (g.generation + 1) + " of " + g.n_generations + ".";
+      pipeline.trace.hidden = false;
+      pipeline.trace.textContent = "Current best loss: " + g.best_loss + "\nCurrent best formula: " + g.best_formula;
+    } else if (job.status === "running") {
+      pipeline.status.textContent = "Computing the spectrogram and segments…";
+    }
+    if (job.status === "done") {
+      pipeline.trace.hidden = true;
+      pipeline.status.textContent = "Done.";
+      showPipelineResult(job.result, designedLabels);
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
+async function runPipeline(blob, designedLabels) {
+  pipeline.run.disabled = true;
+  pipeline.upload.disabled = true;
+  pipeline.result.hidden = true;
+  pipeline.status.textContent = "Sending the WAV file…";
+  try {
+    const seed = Math.max(0, Math.floor(Number(pipeline.seed.value) || 0));
+    const response = await fetch("/api/run?seed=" + seed, {method:"POST", headers:{"Content-Type":"audio/wav"}, body:blob});
+    const reply = await response.json();
+    if (!response.ok) throw new Error(reply.error || response.statusText);
+    await pollJob(reply.job, designedLabels);
+  } catch (error) {
+    pipeline.status.textContent = "Pipeline error: " + error.message;
+    pipeline.trace.hidden = true;
+  } finally {
+    pipeline.run.disabled = false;
+    pipeline.upload.disabled = false;
+  }
+}
+
+if (typeof fetch === "function" && typeof location !== "undefined" && location.protocol.startsWith("http")) {
+  fetch("/api/health").then(r => r.ok ? r.json() : null).then(health => {
+    if (!health || !health.pipeline) return;
+    document.querySelector("#pipelineOffline").hidden = true;
+    document.querySelector("#pipelineOnline").hidden = false;
+    const badge = document.querySelector("#modeBadge");
+    badge.textContent = "local pipeline server";
+    badge.className = "badge";
+    pipeline.run.addEventListener("click", () => runPipeline(audioBlob, current.slice()));
+    pipeline.upload.addEventListener("change", () => {
+      const file = pipeline.upload.files[0];
+      if (file) runPipeline(file, null);
+    });
+  }).catch(() => {});
+}
 </script>
 </body>
 </html>

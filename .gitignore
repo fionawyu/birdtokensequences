@@ -61,3 +61,6 @@ venv/
 *.code-workspace
 .DS_Store
 Thumbs.db
+
+# ---- demo reference classes (built by examples/build_references.py) ----
+!examples/pipeline_references.json

@@ -1,0 +1,352 @@
+{
+  "description": "Synthetic song classes for the demo. Tokens come from GA runs on each class's reference audio; the designed labels only name the classes.",
+  "built_by": "python examples/build_references.py",
+  "pipeline_config": "main_chickeadee_revised.py",
+  "classes": {
+    "A": {
+      "designed_labels": [
+        "UP",
+        "FLAT",
+        "DOWN",
+        "WIGGLE"
+      ]
+    },
+    "B": {
+      "designed_labels": [
+        "DOWN",
+        "WIGGLE",
+        "UP",
+        "FLAT"
+      ]
+    },
+    "C": {
+      "designed_labels": [
+        "UP",
+        "UP",
+        "UP",
+        "FLAT"
+      ]
+    }
+  },
+  "seeds": [
+    47,
+    11,
+    23
+  ],
+  "training_runs": [
+    {
+      "class": "A",
+      "seed": 47,
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT",
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE"
+      ],
+      "note_tokens": [
+        "WIGGLE",
+        "FLAT",
+        "DOWN",
+        "WIGGLE"
+      ],
+      "ga_formulas": [
+        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
+        "(sin 2.9)",
+        "(sin (sin (sin (exp (neg (* (/ 5.3 5.5) t))))))",
+        "(exp (* 2.3 (sin (+ (sin (* 7.3 t)) 4.9))))"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (sin (sin (sin (exp (neg (* (/ 5.3 5.5) t))))))) ((&& (>= t 12.637) (<= t 15.800)) (exp (* 2.3 (sin (+ (sin (* 7.3 t)) 4.9))))) (else 0))",
+      "elapsed_seconds": 269.9747269153595
+    },
+    {
+      "class": "A",
+      "seed": 11,
+      "tokens": [
+        "ZERO",
+        "UP",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE"
+      ],
+      "note_tokens": [
+        "UP",
+        "WIGGLE",
+        "DOWN",
+        "WIGGLE"
+      ],
+      "ga_formulas": [
+        "(sin (+ 9.3 (sin (+ (* 0.1 t) 3))))",
+        "(sin (+ 7.5 (sin (+ (sin (* 7.4 t)) 4.1))))",
+        "(sin (sin (+ (sin (+ (* 0.2 t) 1)) 2)))",
+        "(sin (+ (sin (+ (sin (* t 4)) 5.3)) 4))"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ 9.3 (sin (+ (* 0.1 t) 3))))) ((&& (>= t 5.325) (<= t 7.475)) (sin (+ 7.5 (sin (+ (sin (* 7.4 t)) 4.1))))) ((&& (>= t 8.637) (<= t 11.487)) (sin (sin (+ (sin (+ (* 0.2 t) 1)) 2)))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (sin (+ (sin (* t 4)) 5.3)) 4))) (else 0))",
+      "elapsed_seconds": 270.7988097667694
+    },
+    {
+      "class": "A",
+      "seed": 23,
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT",
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE"
+      ],
+      "note_tokens": [
+        "WIGGLE",
+        "FLAT",
+        "DOWN",
+        "WIGGLE"
+      ],
+      "ga_formulas": [
+        "(sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))",
+        "(sin 2.9)",
+        "(exp (neg (* (sin 1.3) t)))",
+        "(sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (exp (neg (* (sin 1.3) t)))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))) (else 0))",
+      "elapsed_seconds": 263.3855240345001
+    },
+    {
+      "class": "B",
+      "seed": 47,
+      "tokens": [
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "DOWN",
+        "WIGGLE",
+        "WIGGLE",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(sin (sin (exp (neg (exp (* 0.4 t))))))",
+        "(sin (+ (sin (+ (sin (* 4.3 t)) 4.2)) 7.4))",
+        "(sin (+ (* (exp (neg (* 1.0 t))) t) 9))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (sin (sin (exp (neg (exp (* 0.4 t))))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 4.3 t)) 4.2)) 7.4))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (* (exp (neg (* 1.0 t))) t) 9))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 257.5828070640564
+    },
+    {
+      "class": "B",
+      "seed": 11,
+      "tokens": [
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "DOWN",
+        "WIGGLE",
+        "UP",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(exp (neg (* (sin 1.3) t)))",
+        "(sin (+ (sin (+ (sin (* 8.7 t)) 1)) 5.5))",
+        "(sin (+ (sin (+ (* 0.1 t) 3)) 9.3))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (exp (neg (* (sin 1.3) t)))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 8.7 t)) 1)) 5.5))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.1 t) 3)) 9.3))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 264.3812139034271
+    },
+    {
+      "class": "B",
+      "seed": 23,
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "WIGGLE",
+        "WIGGLE",
+        "WIGGLE",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(exp (neg (tan (sin (+ (* 0.5 t) 1)))))",
+        "(sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))",
+        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (exp (neg (tan (sin (+ (* 0.5 t) 1)))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 262.84885811805725
+    },
+    {
+      "class": "C",
+      "seed": 47,
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "WIGGLE",
+        "UP",
+        "WIGGLE",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
+        "(sin (+ (sin (+ (* 0.1 t) 9)) 9))",
+        "(sin (+ (* (exp (neg (* 1.0 t))) t) 9))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.1 t) 9)) 9))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (* (exp (neg (* 1.0 t))) t) 9))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 254.9443440437317
+    },
+    {
+      "class": "C",
+      "seed": 11,
+      "tokens": [
+        "ZERO",
+        "UP",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "UP",
+        "WIGGLE",
+        "UP",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(sin (+ 9.3 (sin (+ (* 0.1 t) 3))))",
+        "(sin (+ (sin (+ (* 0.4 t) (neg 8.5))) 4))",
+        "(sin (+ (* 0.4 (exp (neg (* 3.0 t)))) 3))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ 9.3 (sin (+ (* 0.1 t) 3))))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.4 t) (neg 8.5))) 4))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (* 0.4 (exp (neg (* 3.0 t)))) 3))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 258.975466966629
+    },
+    {
+      "class": "C",
+      "seed": 23,
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "FLAT"
+      ],
+      "note_tokens": [
+        "WIGGLE",
+        "UP",
+        "UP",
+        "FLAT"
+      ],
+      "ga_formulas": [
+        "(sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))",
+        "(sin (+ (sin (+ (* 0.1 t) 3)) 9.3))",
+        "(sin (exp (* 3.6 (sin (+ (* 0.4 t) 5)))))",
+        "(sin 2.9)"
+      ],
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.1 t) 3)) 9.3))) ((&& (>= t 9.137) (<= t 11.787)) (sin (exp (* 3.6 (sin (+ (* 0.4 t) 5)))))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 254.93877005577087
+    }
+  ],
+  "kmedoids": {
+    "k": 3,
+    "cost": 6.0,
+    "winning_seed": 5,
+    "training_accuracy": 0.7777777777777778
+  },
+  "medoids": [
+    {
+      "cluster": 0,
+      "class": "C",
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT"
+      ],
+      "medoid_run": {
+        "class": "C",
+        "seed": 47
+      }
+    },
+    {
+      "cluster": 1,
+      "class": "B",
+      "tokens": [
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "FLAT"
+      ],
+      "medoid_run": {
+        "class": "B",
+        "seed": 11
+      }
+    },
+    {
+      "cluster": 2,
+      "class": "A",
+      "tokens": [
+        "ZERO",
+        "WIGGLE",
+        "ZERO",
+        "FLAT",
+        "ZERO",
+        "DOWN",
+        "ZERO",
+        "WIGGLE"
+      ],
+      "medoid_run": {
+        "class": "A",
+        "seed": 47
+      }
+    }
+  ]
+}
