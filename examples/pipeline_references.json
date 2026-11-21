@@ -39,7 +39,7 @@
       "seed": 47,
       "tokens": [
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT",
         "ZERO",
@@ -48,19 +48,19 @@
         "WIGGLE"
       ],
       "note_tokens": [
-        "WIGGLE",
+        "UP",
         "FLAT",
         "DOWN",
         "WIGGLE"
       ],
       "ga_formulas": [
-        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
+        "(sin (+ (exp (sin (+ (* 0.4 t) 5))) 6))",
         "(sin 2.9)",
-        "(sin (sin (sin (exp (neg (* (/ 5.3 5.5) t))))))",
-        "(exp (* 2.3 (sin (+ (sin (* 7.3 t)) 4.9))))"
+        "(sin (+ (sin (+ (* (sin 6.6) t) 7)) 2))",
+        "(sin (sin (sin (+ (sin t) 8.3))))"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (sin (sin (sin (exp (neg (* (/ 5.3 5.5) t))))))) ((&& (>= t 12.637) (<= t 15.800)) (exp (* 2.3 (sin (+ (sin (* 7.3 t)) 4.9))))) (else 0))",
-      "elapsed_seconds": 269.9747269153595
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (exp (sin (+ (* 0.4 t) 5))) 6))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (sin (+ (sin (+ (* (sin 6.6) t) 7)) 2))) ((&& (>= t 12.637) (<= t 15.800)) (sin (sin (sin (+ (sin t) 8.3))))) (else 0))",
+      "elapsed_seconds": 177.20876908302307
     },
     {
       "class": "A",
@@ -82,41 +82,41 @@
         "WIGGLE"
       ],
       "ga_formulas": [
-        "(sin (+ 9.3 (sin (+ (* 0.1 t) 3))))",
+        "(sin (sin (sin (sin (sin (+ (* 0.3 t) 6))))))",
         "(sin (+ 7.5 (sin (+ (sin (* 7.4 t)) 4.1))))",
-        "(sin (sin (+ (sin (+ (* 0.2 t) 1)) 2)))",
-        "(sin (+ (sin (+ (sin (* t 4)) 5.3)) 4))"
+        "(sin (+ (sin (+ (* 0.2 t) 5)) 10))",
+        "(sin (+ (cos (sin (+ (* 0.6 t) 5.2))) 2))"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ 9.3 (sin (+ (* 0.1 t) 3))))) ((&& (>= t 5.325) (<= t 7.475)) (sin (+ 7.5 (sin (+ (sin (* 7.4 t)) 4.1))))) ((&& (>= t 8.637) (<= t 11.487)) (sin (sin (+ (sin (+ (* 0.2 t) 1)) 2)))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (sin (+ (sin (* t 4)) 5.3)) 4))) (else 0))",
-      "elapsed_seconds": 270.7988097667694
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (sin (sin (sin (+ (* 0.3 t) 6))))))) ((&& (>= t 5.325) (<= t 7.475)) (sin (+ 7.5 (sin (+ (sin (* 7.4 t)) 4.1))))) ((&& (>= t 8.637) (<= t 11.487)) (sin (+ (sin (+ (* 0.2 t) 5)) 10))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (cos (sin (+ (* 0.6 t) 5.2))) 2))) (else 0))",
+      "elapsed_seconds": 187.08414912223816
     },
     {
       "class": "A",
       "seed": 23,
       "tokens": [
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT",
         "ZERO",
         "DOWN",
         "ZERO",
-        "WIGGLE"
+        "UP"
       ],
       "note_tokens": [
-        "WIGGLE",
+        "UP",
         "FLAT",
         "DOWN",
-        "WIGGLE"
+        "UP"
       ],
       "ga_formulas": [
-        "(sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))",
+        "(sin (+ (sin (+ (* 0.2 t) 7)) 5.7))",
         "(sin 2.9)",
-        "(exp (neg (* (sin 1.3) t)))",
-        "(sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))"
+        "(sin (sin (sin (+ (* 0.1 t) 9))))",
+        "(sin (+ (* 0.2 t) 6.1))"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (exp (neg (* (sin 1.3) t)))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))) (else 0))",
-      "elapsed_seconds": 263.3855240345001
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.2 t) 7)) 5.7))) ((&& (>= t 5.325) (<= t 7.475)) (sin 2.9)) ((&& (>= t 8.637) (<= t 11.487)) (sin (sin (sin (+ (* 0.1 t) 9))))) ((&& (>= t 12.637) (<= t 15.800)) (sin (+ (* 0.2 t) 6.1))) (else 0))",
+      "elapsed_seconds": 157.72020316123962
     },
     {
       "class": "B",
@@ -127,24 +127,24 @@
         "ZERO",
         "WIGGLE",
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT"
       ],
       "note_tokens": [
         "DOWN",
         "WIGGLE",
-        "WIGGLE",
+        "UP",
         "FLAT"
       ],
       "ga_formulas": [
-        "(sin (sin (exp (neg (exp (* 0.4 t))))))",
-        "(sin (+ (sin (+ (sin (* 4.3 t)) 4.2)) 7.4))",
-        "(sin (+ (* (exp (neg (* 1.0 t))) t) 9))",
+        "(sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))",
+        "(sin (+ (sin (+ (* 0.7 t) 6.8)) 2))",
+        "(sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (sin (sin (exp (neg (exp (* 0.4 t))))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 4.3 t)) 4.2)) 7.4))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (* (exp (neg (* 1.0 t))) t) 9))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 257.5828070640564
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (* 0.7 t) 6.8)) 2))) ((&& (>= t 9.837) (<= t 12.487)) (sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 185.93278002738953
     },
     {
       "class": "B",
@@ -166,69 +166,69 @@
         "FLAT"
       ],
       "ga_formulas": [
-        "(exp (neg (* (sin 1.3) t)))",
-        "(sin (+ (sin (+ (sin (* 8.7 t)) 1)) 5.5))",
-        "(sin (+ (sin (+ (* 0.1 t) 3)) 9.3))",
+        "(sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))",
+        "(sin (sin (sin (sin (+ (sin t) 8.3)))))",
+        "(sin (+ (sin (+ (* 0.3 t) 10)) 10))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (exp (neg (* (sin 1.3) t)))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 8.7 t)) 1)) 5.5))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.1 t) 3)) 9.3))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 264.3812139034271
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (sin (sin (sin (+ (sin t) 8.3)))))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.3 t) 10)) 10))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 181.69632196426392
     },
     {
       "class": "B",
       "seed": 23,
       "tokens": [
         "ZERO",
-        "WIGGLE",
+        "DOWN",
         "ZERO",
-        "WIGGLE",
+        "DOWN",
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT"
       ],
       "note_tokens": [
-        "WIGGLE",
-        "WIGGLE",
-        "WIGGLE",
+        "DOWN",
+        "DOWN",
+        "UP",
         "FLAT"
       ],
       "ga_formulas": [
-        "(exp (neg (tan (sin (+ (* 0.5 t) 1)))))",
-        "(sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))",
-        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
+        "(sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))",
+        "(sin (+ (sin (+ (* 0.4 t) 8)) 5.7))",
+        "(sin (+ (sin (+ (* 0.3 t) 10)) 10))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (exp (neg (tan (sin (+ (* 0.5 t) 1)))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (sin (* 4 t)) 5.3)) 4))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 262.84885811805725
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.375)) (sin (sin (sin (sin (sin (+ (* 0.1 t) 9))))))) ((&& (>= t 5.525) (<= t 8.688)) (sin (+ (sin (+ (* 0.4 t) 8)) 5.7))) ((&& (>= t 9.837) (<= t 12.487)) (sin (+ (sin (+ (* 0.3 t) 10)) 10))) ((&& (>= t 13.637) (<= t 15.800)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 186.65220594406128
     },
     {
       "class": "C",
       "seed": 47,
       "tokens": [
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "UP",
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT"
       ],
       "note_tokens": [
-        "WIGGLE",
         "UP",
-        "WIGGLE",
+        "UP",
+        "UP",
         "FLAT"
       ],
       "ga_formulas": [
-        "(sin (+ (sin (+ (* 0.3 t) 4.1)) 4))",
-        "(sin (+ (sin (+ (* 0.1 t) 9)) 9))",
-        "(sin (+ (* (exp (neg (* 1.0 t))) t) 9))",
+        "(sin (+ (exp (sin (+ (* 0.4 t) 5))) 6))",
+        "(sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))",
+        "(sin (+ (sin (+ (* (sin 6.6) t) 10)) 10))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.3 t) 4.1)) 4))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.1 t) 9)) 9))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (* (exp (neg (* 1.0 t))) t) 9))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 254.9443440437317
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (exp (sin (+ (* 0.4 t) 5))) 6))) ((&& (>= t 5.325) (<= t 7.975)) (sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (sin (+ (* (sin 6.6) t) 10)) 10))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 178.06088304519653
     },
     {
       "class": "C",
@@ -237,7 +237,7 @@
         "ZERO",
         "UP",
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "UP",
         "ZERO",
@@ -245,75 +245,57 @@
       ],
       "note_tokens": [
         "UP",
-        "WIGGLE",
+        "UP",
         "UP",
         "FLAT"
       ],
       "ga_formulas": [
-        "(sin (+ 9.3 (sin (+ (* 0.1 t) 3))))",
-        "(sin (+ (sin (+ (* 0.4 t) (neg 8.5))) 4))",
-        "(sin (+ (* 0.4 (exp (neg (* 3.0 t)))) 3))",
+        "(sin (sin (sin (sin (sin (+ (* 0.3 t) 6))))))",
+        "(sin (+ (sin (+ (* 0.3 t) 10)) 10))",
+        "(sin (+ (sin (+ (* 0.2 t) 3.9)) 10))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ 9.3 (sin (+ (* 0.1 t) 3))))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.4 t) (neg 8.5))) 4))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (* 0.4 (exp (neg (* 3.0 t)))) 3))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 258.975466966629
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (sin (sin (sin (+ (* 0.3 t) 6))))))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.3 t) 10)) 10))) ((&& (>= t 9.137) (<= t 11.787)) (sin (+ (sin (+ (* 0.2 t) 3.9)) 10))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 182.9397737979889
     },
     {
       "class": "C",
       "seed": 23,
       "tokens": [
         "ZERO",
-        "WIGGLE",
-        "ZERO",
         "UP",
+        "ZERO",
+        "WIGGLE",
         "ZERO",
         "UP",
         "ZERO",
         "FLAT"
       ],
       "note_tokens": [
-        "WIGGLE",
         "UP",
+        "WIGGLE",
         "UP",
         "FLAT"
       ],
       "ga_formulas": [
-        "(sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))",
-        "(sin (+ (sin (+ (* 0.1 t) 3)) 9.3))",
-        "(sin (exp (* 3.6 (sin (+ (* 0.4 t) 5)))))",
+        "(sin (+ (sin (+ (* 0.2 t) 7)) 5.7))",
+        "(sin (+ (* 0.2 t) (exp (neg (* 7.8 t)))))",
+        "(sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))",
         "(sin 2.9)"
       ],
-      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (sin (+ (sin (+ (* 0.3 t) 4.1)) 4)))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (sin (+ (* 0.1 t) 3)) 9.3))) ((&& (>= t 9.137) (<= t 11.787)) (sin (exp (* 3.6 (sin (+ (* 0.4 t) 5)))))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
-      "elapsed_seconds": 254.93877005577087
+      "composed_formula": "(cond ((&& (>= t 1.512) (<= t 4.175)) (sin (+ (sin (+ (* 0.2 t) 7)) 5.7))) ((&& (>= t 5.325) (<= t 7.975)) (sin (+ (* 0.2 t) (exp (neg (* 7.8 t)))))) ((&& (>= t 9.137) (<= t 11.787)) (sin (sin (+ (sin (+ (* 0.3 t) 10)) 3.7)))) ((&& (>= t 12.937) (<= t 15.100)) (sin 2.9)) (else 0))",
+      "elapsed_seconds": 182.67944288253784
     }
   ],
   "kmedoids": {
     "k": 3,
-    "cost": 6.0,
-    "winning_seed": 5,
-    "training_accuracy": 0.7777777777777778
+    "cost": 4.0,
+    "winning_seed": 4,
+    "training_accuracy": 0.8888888888888888
   },
   "medoids": [
     {
       "cluster": 0,
-      "class": "C",
-      "tokens": [
-        "ZERO",
-        "WIGGLE",
-        "ZERO",
-        "UP",
-        "ZERO",
-        "WIGGLE",
-        "ZERO",
-        "FLAT"
-      ],
-      "medoid_run": {
-        "class": "C",
-        "seed": 47
-      }
-    },
-    {
-      "cluster": 1,
       "class": "B",
       "tokens": [
         "ZERO",
@@ -327,15 +309,15 @@
       ],
       "medoid_run": {
         "class": "B",
-        "seed": 11
+        "seed": 47
       }
     },
     {
-      "cluster": 2,
+      "cluster": 1,
       "class": "A",
       "tokens": [
         "ZERO",
-        "WIGGLE",
+        "UP",
         "ZERO",
         "FLAT",
         "ZERO",
@@ -345,6 +327,24 @@
       ],
       "medoid_run": {
         "class": "A",
+        "seed": 47
+      }
+    },
+    {
+      "cluster": 2,
+      "class": "C",
+      "tokens": [
+        "ZERO",
+        "UP",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "UP",
+        "ZERO",
+        "FLAT"
+      ],
+      "medoid_run": {
+        "class": "C",
         "seed": 47
       }
     }

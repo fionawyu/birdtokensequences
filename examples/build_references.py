@@ -41,7 +41,7 @@ CLASSES = {
 
 def one_run(job):
     name, seed, wav = job
-    result = pipeline_runner.run_pipeline(Path(wav), seed, references=None, figure=False)
+    result = pipeline_runner.run_pipeline(Path(wav), seed, references=None, replay=False)
     return {"class": name, "seed": seed, "tokens": result["token_sequence"],
             "note_tokens": result["note_tokens"], "ga_formulas": result["ga_formulas"],
             "composed_formula": result["composed_formula"],

@@ -95,6 +95,7 @@ class GAProgress(io.TextIOBase):
         self.buffer = ""
         self.segment = 0
         self.generations_seen = []
+        self.history = []  # per segment: generation, loss and formula whenever the best loss improves
 
     def write(self, text):
         self.buffer += text
@@ -107,7 +108,12 @@ class GAProgress(io.TextIOBase):
             if generation == 0:
                 self.segment += 1
                 self.generations_seen.append(0)
+                self.history.append([])
             self.generations_seen[-1] += 1
+            loss, formula = float(match.group(2)), match.group(3)
+            steps = self.history[-1]
+            if not steps or loss < steps[-1]["loss"]:
+                steps.append({"generation": generation, "loss": loss, "formula": formula})
             if self.callback:
                 self.callback({
                     "segment": self.segment, "n_segments": self.n_segments,
@@ -161,42 +167,64 @@ def load_references():
     return None
 
 
-def draw_figure(m, record, segments, subfmls, times_ext, rows):
+def formula_curve(m, fml, seg, times_ext, spec, freqs, duration):
+    """Frequency curve of a formula on one segment, using the mapping of
+    synthesizers.fmlDrawSpec: evaluate at the segment's times, map each value to
+    the nearest row of linspace(0, uyFreqlim/12000, height), skip row 0."""
+    from funcWrappers import wrapExtEvalRPN
+    from utils import lispToRPN
+    a, b = int(seg[0]), int(seg[1])
+    width, height = b - a, spec.shape[0]
+    time_seg = times_ext[0:width]
+    normed_times = np.linspace(time_seg[0], time_seg[-1], width)
+    normed_freqs = np.linspace(0, m.uyFreqlim / 12000, height)
+    rpn = lispToRPN(fml)
+    if rpn is None:
+        return [], []
+    pred, _ = wrapExtEvalRPN(rpn, normed_times)
+    with np.errstate(invalid="ignore"):
+        rows = np.abs(normed_freqs[None, :] - np.asarray(pred, dtype=float)[:, None]).argmin(axis=1)
+    frame_s = duration / spec.shape[1]
+    step = max(1, int(np.ceil(width / 160)))
+    columns = [k for k in range(0, width, step) if rows[k] != 0]
+    curve = [[round((a + k) * frame_s, 4), round(float(freqs[rows[k]]), 1)] for k in columns]
+    return curve, [(k, int(rows[k])) for k in columns]
+
+
+def replay_data(m, record, segments, subfmls, times_ext, history, check):
+    """Everything the page needs to replay the run: the pipeline's denoised
+    spectrogram as an image, and for each segment the GA search history with
+    the curve of each improving formula."""
     import matplotlib
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    import matplotlib.image as mpimg
+    from synthesizers import fmlDrawSpec
     spec, freqs, duration = record["denoised_spec"], record["freqs"], record["duration"]
-    # the paper's own drawing of the fitted formulas (the "Predicted Spectrogram")
-    with contextlib.redirect_stdout(io.StringIO()):
-        predicted = m.drawRelativeSpec(segments, subfmls, times_ext, spec,
-                                       m.lyFreqlim, m.uyFreqlim, m.thickness)
-    extent = [0, duration, freqs[0] / 1000, freqs[-1] / 1000]
-    fig, axes = plt.subplots(2, 1, figsize=(10, 5.4), sharex=True)
-    axes[0].imshow(spec, origin="lower", aspect="auto", extent=extent, cmap="viridis")
-    axes[0].set_title("Denoised spectrogram and detected segments (pipeline input)")
-    axes[1].imshow(predicted, origin="lower", aspect="auto", extent=extent, cmap="viridis")
-    axes[1].set_title("Spectrogram drawn from the GA formulas (pipeline output)")
-    for ax in axes:
-        ax.set_ylabel("kHz")
-        for row in rows:
-            if row["kind"] == "note":
-                ax.axvspan(row["start_s"], row["end_s"], color="white", alpha=.08)
-                ax.axvline(row["start_s"], color="white", lw=.6, alpha=.6)
-                ax.axvline(row["end_s"], color="white", lw=.6, alpha=.6)
-    for row in rows:
-        if row["kind"] == "note":
-            axes[1].text((row["start_s"] + row["end_s"]) / 2, extent[3] * .93, row["token"],
-                         color="white", ha="center", va="top", fontsize=9, weight="bold")
-    axes[1].set_xlabel("Time (s)")
-    axes[1].set_xlim(0, duration)
-    fig.tight_layout()
+    image = cm.viridis(np.clip(spec[::2, ::2], 0, 1))[::-1]  # top row = highest frequency
     buffer = io.BytesIO()
-    fig.savefig(buffer, format="png", dpi=110)
-    plt.close(fig)
-    return base64.b64encode(buffer.getvalue()).decode("ascii")
+    mpimg.imsave(buffer, image, format="png")
+    out = []
+    for i, seg in enumerate(segments):
+        steps = list(history[i])
+        if not steps or steps[-1]["formula"] != subfmls[i]:
+            steps.append({"generation": steps[-1]["generation"] if steps else 0,
+                          "loss": None, "formula": subfmls[i]})
+        for step in steps:
+            step["curve"], drawn = formula_curve(m, step["formula"], seg, times_ext, spec, freqs, duration)
+        # the curve shown for the final formula must be what the paper's fmlDrawSpec draws
+        a, b = int(seg[0]), int(seg[1])
+        image_seg = fmlDrawSpec(subfmls[i], times_ext[0:b - a], spec[:, a:b], m.lyFreqlim, m.uyFreqlim, m.thickness)
+        check(f"replay curve of segment {i + 1} matches fmlDrawSpec",
+              all(image_seg[row, k] == 1 for k, row in drawn))
+        out.append({"start_s": a * duration / spec.shape[1], "end_s": b * duration / spec.shape[1],
+                    "history": steps})
+    return {"spectrogram_png_base64": base64.b64encode(buffer.getvalue()).decode("ascii"),
+            "duration_s": duration, "freq_lo_hz": float(freqs[0]), "freq_hi_hz": float(freqs[-1]),
+            "segments": out}
 
 
-def run_pipeline(wav_path, seed=47, on_progress=None, references="default", figure=True):
+def run_pipeline(wav_path, seed=47, on_progress=None, references="default", replay=True):
     import synthesizers
     from sampleClass import classify_subfml_with_rule, seg_W_fixed
     m = pipeline_module()
@@ -292,8 +320,8 @@ def run_pipeline(wav_path, seed=47, on_progress=None, references="default", figu
         "checks": checks,
         "elapsed_seconds": time.time() - started,
     }
-    if figure:
-        result["figure_png_base64"] = draw_figure(m, record, segments, subfmls, times_ext, rows)
+    if replay:
+        result["replay"] = replay_data(m, record, segments, subfmls, times_ext, progress.history, check)
     failed = [c["check"] for c in checks if not c["passed"]]
     if failed:
         raise AssertionError("Pipeline consistency checks failed: " + "; ".join(failed))
@@ -304,7 +332,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("wav")
     parser.add_argument("--seed", type=int, default=47)
-    parser.add_argument("--json", help="write the full result (without the figure) to this file")
+    parser.add_argument("--json", help="write the full result to this file")
     args = parser.parse_args()
 
     def show(p):
@@ -312,7 +340,7 @@ def main():
             print(f"  segment {p['segment']}/{p['n_segments']} generation {p['generation'] + 1}: "
                   f"loss {p['best_loss']:.4f}  {p['best_formula']}", flush=True)
 
-    result = run_pipeline(Path(args.wav).resolve(), args.seed, on_progress=show, figure=False)
+    result = run_pipeline(Path(args.wav).resolve(), args.seed, on_progress=show, replay=False)
     print(f"\nDuration: {result['audio']['duration_s']:.3f} s, {len(result['ga_formulas'])} segments")
     for row in result["segments"]:
         print(f"  {row['start_s']:.3f}-{row['end_s']:.3f} s  {row['token']:<6}  {row['formula']}")

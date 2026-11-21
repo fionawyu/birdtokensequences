@@ -43,7 +43,16 @@ table{border-collapse:collapse;width:100%;font-size:.84rem;margin-top:.6rem}
 th,td{text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--line);vertical-align:top}
 td code,pre{font:500 .78rem ui-monospace,monospace;word-break:break-all;white-space:pre-wrap}
 pre{background:#edf2e9;padding:.6rem;border-radius:7px;margin:.4rem 0 0}
-img#pipelineFigure{width:100%;margin-top:.8rem;border-radius:7px}
+.stages button.active{background:var(--ink);color:white;border-color:var(--ink)}
+#replayScrub{flex:1;min-width:120px;padding:0}
+.caption{font-size:1rem;min-height:3.2em;margin-top:.3rem}
+#replayFormula{min-height:2.4em}
+details{margin-top:1rem;border-top:1px solid var(--line);padding-top:.7rem}
+summary{cursor:pointer;font-weight:600;font-size:.9rem}
+.bar-row{display:grid;grid-template-columns:5.5rem 1fr 7rem;gap:10px;align-items:center;font-size:.88rem;margin:.3rem 0}
+.bar{height:14px;background:var(--line);border-radius:4px}
+.bar-row.win{font-weight:700}
+.bar-row.win .bar{background:#287448}
 footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 @media(max-width:720px){.panels{grid-template-columns:1fr}nav{font-size:.82rem}}
 </style>
@@ -93,15 +102,15 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 </div>
 
 <section id="pipelinePanel" class="card wide" aria-labelledby="pipeline-heading">
-<h2 id="pipeline-heading">Chapter 1 pipeline output <span id="modeBadge" class="badge">recorded runs</span></h2>
-<p>The labels above are the contours we designed. Below are results recorded from real runs of the paper code on three example songs. For each song, the audio rendered by this page was the only input: spectrogram → segments → one genetic-programming search per segment → formulas → tokens → nearest class medoid. This page displays those recorded results; it does not run the genetic program. The runs used GA seed 37, which was not used to build the class medoids. Choose a song to see its run and load it above.</p>
+<h2 id="pipeline-heading">Watch the Chapter 1 pipeline <span id="modeBadge" class="badge">recorded runs</span></h2>
+<p class="note">Pick a song and watch a real run of the paper code on its audio: spectrogram, segments, the genetic-programming search, tokens, and the class. The pipeline sees only the audio, never the designed labels. This page replays recorded runs; it does not run the genetic program itself.</p>
 <div id="recordedButtons" class="controls"></div>
 <p id="recordedNote" class="note"></p>
 <div id="pipelineOnline" hidden>
-<h3>Live run (local pipeline server)</h3>
-<p>The browser sends only the WAV file to the local server; the note labels are not sent. The server runs the paper's code on that audio: spectrogram, segmentation, one genetic-programming search per segment, formula composition, token mapping, and nearest-medoid classification. A run takes about 15–45 seconds per note, depending on the computer.</p>
+<h3>Live run on this computer</h3>
+<p class="note">The browser sends only the WAV file to the local server, which runs the same code. A run takes about 15–45 seconds per note.</p>
 <div class="controls">
-<button id="runPipeline" class="primary" type="button">Run pipeline on current audio</button>
+<button id="runPipeline" type="button">Run pipeline on current audio</button>
 <label class="note" for="seed">GA seed</label>
 <input id="seed" type="number" value="47" min="0" step="1">
 <label class="note" for="upload">or upload a .wav</label>
@@ -111,20 +120,31 @@ footer{margin:22px 0 44px;color:var(--sub);font-size:.91rem;max-width:84ch}
 <p id="pipelineStatus" class="note" aria-live="polite"></p>
 <pre id="gaTrace" hidden></pre>
 <div id="pipelineResult" hidden>
-<h3>Token sequence produced by the pipeline</h3>
+<div id="stageButtons" class="controls stages"></div>
+<canvas id="replay" width="960" height="330" role="img" aria-label="Replay of the pipeline run drawn on the pipeline's spectrogram"></canvas>
+<div class="controls">
+<button id="replayPlay" class="primary" type="button">▶ Play</button>
+<input id="replayScrub" type="range" min="0" max="0" value="0" aria-label="Replay position">
+<span id="replayClock" class="note"></span>
+</div>
+<p id="replayCaption" class="caption" aria-live="polite"></p>
+<pre id="replayFormula" hidden></pre>
 <ol id="pipelineTokens" class="tokens"></ol>
-<p id="tokenCheck" class="note"></p>
+<div id="classBars" hidden></div>
+<p id="tokenCheck" class="note" hidden></p>
+<details>
+<summary>All numbers: formulas, mapping rules, class distances, checks</summary>
 <h3>Class label</h3>
 <p id="classLabel"></p>
 <table><thead><tr><th>Class</th><th>Medoid token sequence (from GA runs on that class's reference song)</th><th>Edit distance</th></tr></thead><tbody id="classTable"></tbody></table>
 <h3>GA formulas per segment</h3>
 <table><thead><tr><th>#</th><th>Time (s)</th><th>Best formula found by GA (t in pipeline time units)</th><th>GA loss</th><th>Token</th><th>Mapping rule that fired</th></tr></thead><tbody id="segmentTable"></tbody></table>
-<img id="pipelineFigure" alt="Top: denoised spectrogram with the detected segments. Bottom: spectrogram drawn from the fitted formulas.">
 <h3>Composed formula</h3>
 <pre id="composedFormula"></pre>
 <p id="pipelineParams" class="note"></p>
 <h3>Consistency checks run with the pipeline</h3>
 <ul id="pipelineChecks" class="note"></ul>
+</details>
 </div>
 </section>
 <noscript><p>Enable JavaScript to play and change the example.</p></noscript>
@@ -140,10 +160,10 @@ const endGap = .16;
 const noteGap = .11;
 // Designed contours. The label is the name we gave the contour, not a measurement.
 const NOTE_TYPES = {
-  UP:     {seconds:.27, frequency:t => 2150 + 1640*t},
+  UP:     {seconds:.27, frequency:t => 2800 + 2800*t},
   FLAT:   {seconds:.22, frequency:() => 4200},
-  DOWN:   {seconds:.29, frequency:t => 4740 - 1960*t},
-  WIGGLE: {seconds:.32, frequency:t => 3380 + 510*Math.sin(4*Math.PI*t)}
+  DOWN:   {seconds:.29, frequency:t => 5600 - 2800*t},
+  WIGGLE: {seconds:.32, frequency:t => 4200 + 900*Math.sin(3*Math.PI*t)}
 };
 const NOTE_NAMES = Object.keys(NOTE_TYPES);
 const FIRST_ORIGINAL = ["UP", "FLAT", "DOWN", "WIGGLE"];
@@ -495,10 +515,267 @@ function addRow(body, cells) {
   body.append(row);
 }
 
-function showPipelineResult(result, designedLabels) {
+// ---------------------------------------------------------------------------
+// Replay player: steps through a recorded (or just finished) pipeline run.
+// Every number and curve it draws comes from the run's result; nothing here
+// computes formulas or tokens.
+// ---------------------------------------------------------------------------
+const STAGES = ["1 Spectrogram", "2 Segments", "3 GA search", "4 Tokens", "5 Class"];
+const player = {
+  canvas: document.querySelector("#replay"),
+  play: document.querySelector("#replayPlay"),
+  scrub: document.querySelector("#replayScrub"),
+  clock: document.querySelector("#replayClock"),
+  caption: document.querySelector("#replayCaption"),
+  formula: document.querySelector("#replayFormula"),
+  stages: document.querySelector("#stageButtons"),
+  bars: document.querySelector("#classBars"),
+  tokens: document.querySelector("#pipelineTokens"),
+  frames: [], index: 0, timer: null, image: null, result: null
+};
+
+function fmtLoss(value) {
+  return value === null || value === undefined ? "–" : value.toFixed(4);
+}
+
+function buildFrames(result) {
+  const r = result.replay;
+  const n = r.segments.length;
+  const generations = result.parameters.numGenLim;
+  const notes = result.segments.filter(s => s.kind === "note");
+  const frames = [{stage:0, ms:3200, segs:0, done:0, shown:0,
+    caption:"The pipeline reads only the WAV file (" + r.duration_s.toFixed(2) + " s), resamples it to 44.1 kHz and computes this denoised spectrogram from "
+      + Math.round(r.freq_lo_hz/1000) + " to " + Math.round(r.freq_hi_hz/1000) + " kHz."}];
+  r.segments.forEach((s, i) => frames.push({stage:1, ms:1000, segs:i+1, done:0, shown:0,
+    caption:"Segmentation: the frames are loud enough from " + s.start_s.toFixed(3) + " to " + s.end_s.toFixed(3)
+      + " s, so this becomes sound segment " + (i+1) + " of " + n + "."}));
+  r.segments.forEach((s, i) => s.history.forEach((h, k) => {
+    const last = k === s.history.length - 1;
+    const loss = h.loss ?? notes[i]?.ga_best_loss;
+    frames.push({stage:2, ms:last ? 1800 : 500, segs:n, done:i, active:i, step:k, shown:0, formula:h.formula,
+      caption:last
+        ? "Segment " + (i+1) + ": after " + generations + " generations the genetic program keeps this formula (loss " + fmtLoss(loss) + "). Its curve follows the bright line."
+        : "Segment " + (i+1) + ": genetic program, generation " + (h.generation+1) + " of " + generations
+          + (k === 0 ? ". Start: the best of " + result.parameters.popSize + " random formulas" : ". A better formula appears")
+          + " (loss " + fmtLoss(loss) + ")."});
+  }));
+  let noteIndex = 0;
+  result.segments.forEach((row, j) => {
+    const isNote = row.kind === "note";
+    frames.push({stage:3, ms:isNote ? 2400 : 450, segs:n, done:n, shown:j+1, highlight:isNote ? noteIndex : null,
+      formula:isNote ? row.formula : null,
+      caption:isNote
+        ? "Segment " + (noteIndex+1) + " → " + row.token + ". Mapping rule: " + row.rule + "."
+        : "Silent gap " + row.start_s.toFixed(3) + "–" + row.end_s.toFixed(3) + " s → ZERO."});
+    if (isNote) noteIndex++;
+  });
+  if (result.classification) {
+    const c = result.classification;
+    frames.push({stage:4, ms:5000, segs:n, done:n, shown:result.segments.length, cls:true,
+      caption:"Class: edit distance from this token sequence to each class medoid. The nearest is class "
+        + c.predicted_class + " (distance " + c.distance + ")."});
+  }
+  return frames;
+}
+
+function drawReplay(frame) {
+  const r = player.result.replay;
+  const c = player.canvas.getContext("2d");
+  const P = {left:52, top:14, width:640, height:280};
+  const L = {left:800, top:40, width:144, height:180};
+  const x = t => P.left + t/r.duration_s*P.width;
+  const y = hz => P.top + (1 - (hz - r.freq_lo_hz)/(r.freq_hi_hz - r.freq_lo_hz))*P.height;
+  c.fillStyle = "#142e29";
+  c.fillRect(0, 0, player.canvas.width, player.canvas.height);
+  if (player.image && player.image.complete) c.drawImage(player.image, P.left, P.top, P.width, P.height);
+  c.fillStyle = "#e2efe2";
+  c.font = "13px system-ui";
+  c.textAlign = "right";
+  for (let k = Math.ceil(r.freq_lo_hz/1000); k <= Math.floor(r.freq_hi_hz/1000); k++) c.fillText(k + "k", P.left - 6, y(k*1000) + 4);
+  const ticks = timeTicks(r.duration_s);
+  ticks.forEach((t, i) => {
+    c.textAlign = i === ticks.length - 1 ? "right" : "center";
+    c.fillText(i === ticks.length - 1 ? t.toFixed(2) + " s" : String(t), x(t), P.top + P.height + 20);
+  });
+  r.segments.slice(0, frame.segs).forEach((s, i) => {
+    const focus = frame.active === i || frame.highlight === i;
+    c.strokeStyle = focus ? "#ffffff" : "rgba(255,255,255,.45)";
+    c.lineWidth = focus ? 2 : 1;
+    c.strokeRect(x(s.start_s), P.top, x(s.end_s) - x(s.start_s), P.height);
+    c.fillStyle = "#ffffff";
+    c.textAlign = "left";
+    c.fillText(String(i + 1), x(s.start_s) + 4, P.top + P.height - 6);
+  });
+  const curve = (points, color, size) => {
+    c.fillStyle = color;
+    for (const [t, hz] of points) c.fillRect(x(t) - size/2, y(hz) - size/2, size, size);
+  };
+  r.segments.forEach((s, i) => {
+    if (i < frame.done) curve(s.history[s.history.length-1].curve, "#ffd23f", 4);
+    if (i === frame.active) {
+      s.history.slice(0, frame.step).forEach(h => curve(h.curve, "rgba(255,255,255,.22)", 3));
+      curve(s.history[frame.step].curve, "#ff7a3d", 5);
+    }
+  });
+  if (frame.stage >= 3) {
+    let noteIndex = 0;
+    player.result.segments.slice(0, frame.shown).forEach(row => {
+      if (row.kind !== "note") return;
+      const s = r.segments[noteIndex++];
+      const cx = (x(s.start_s) + x(s.end_s))/2;
+      c.font = "600 13px ui-monospace,monospace";
+      const w = c.measureText(row.token).width + 12;
+      c.fillStyle = "#fffefa";
+      c.fillRect(cx - w/2, P.top + 6, w, 20);
+      c.fillStyle = "#17362e";
+      c.textAlign = "center";
+      c.fillText(row.token, cx, P.top + 21);
+    });
+  }
+  // right panel: GA loss of the active segment, one point per improvement
+  c.font = "13px system-ui";
+  c.textAlign = "left";
+  c.fillStyle = "#e2efe2";
+  c.fillText("GA loss (lower = better fit)", 744, L.top - 16);
+  c.strokeStyle = "rgba(255,255,255,.35)";
+  c.lineWidth = 1;
+  c.strokeRect(L.left, L.top, L.width, L.height);
+  const generations = player.result.parameters.numGenLim;
+  const finalLoss = i => {
+    const known = r.segments[i].history.filter(h => h.loss !== null);
+    return known.length ? known[known.length - 1].loss : null;
+  };
+  if (frame.stage === 2) {
+    const steps = r.segments[frame.active].history.filter(h => h.loss !== null);
+    const losses = steps.map(h => h.loss);
+    const hi = Math.max(...losses), lo = Math.min(...losses), span = (hi - lo) || 1e-6;
+    const lx = g => L.left + g/generations*L.width;
+    const ly = v => L.top + 10 + (hi - v)/span*(L.height - 20);
+    c.font = "12px system-ui";
+    c.textAlign = "right";
+    c.fillText(hi.toFixed(4), L.left - 5, ly(hi) + 4);
+    c.fillText(lo.toFixed(4), L.left - 5, ly(lo) + 4);
+    c.textAlign = "left";
+    c.fillText("0", L.left, L.top + L.height + 15);
+    c.textAlign = "right";
+    c.fillText(String(generations), L.left + L.width, L.top + L.height + 15);
+    c.textAlign = "center";
+    c.fillText("generation", L.left + L.width/2, L.top + L.height + 15);
+    const shown = steps.slice(0, frame.step + 1);
+    const finished = frame.step >= steps.length - 1;
+    c.strokeStyle = "#ff7a3d";
+    c.lineWidth = 2;
+    c.beginPath();
+    shown.forEach((h, k) => {
+      const next = k + 1 < shown.length ? shown[k+1].generation : (finished ? generations : h.generation);
+      if (k === 0) c.moveTo(lx(h.generation), ly(h.loss)); else c.lineTo(lx(h.generation), ly(h.loss));
+      c.lineTo(lx(next), ly(h.loss));
+    });
+    c.stroke();
+    const current = shown[shown.length - 1];
+    c.fillStyle = "#ff7a3d";
+    c.beginPath();
+    c.arc(lx(current.generation), ly(current.loss), 4, 0, 2*Math.PI);
+    c.fill();
+    const gain = (shown[0].loss - current.loss)/shown[0].loss*100;
+    c.fillStyle = "#e2efe2";
+    c.font = "13px system-ui";
+    c.textAlign = "left";
+    c.fillText("Segment " + (frame.active + 1) + ": loss " + shown[0].loss.toFixed(4) + " → " + current.loss.toFixed(4), 744, L.top + L.height + 40);
+    c.fillText(gain > 0 ? "(" + gain.toFixed(0) + "% lower than the start)" : "(starting formula)", 744, L.top + L.height + 58);
+  } else if (frame.stage > 2) {
+    c.textAlign = "left";
+    c.fillText("Final loss per segment", L.left + 10, L.top + 24);
+    r.segments.forEach((s, i) => {
+      const value = finalLoss(i);
+      c.fillText("Segment " + (i + 1) + ": " + (value === null ? "–" : value.toFixed(4)), L.left + 10, L.top + 50 + i*22);
+    });
+  } else {
+    c.fillStyle = "rgba(226,239,226,.7)";
+    c.textAlign = "left";
+    c.fillText("Shown during", L.left + 10, L.top + L.height/2 - 8);
+    c.fillText("the GA search", L.left + 10, L.top + L.height/2 + 10);
+  }
+}
+
+function showFrame(index) {
+  const frames = player.frames;
+  player.index = Math.max(0, Math.min(frames.length - 1, index));
+  const frame = frames[player.index];
+  player.scrub.value = String(player.index);
+  player.clock.textContent = "Step " + (player.index + 1) + " / " + frames.length;
+  player.caption.textContent = frame.caption;
+  player.formula.hidden = !frame.formula;
+  player.formula.textContent = frame.formula ? "Formula: " + frame.formula : "";
+  [...player.stages.children].forEach((button, i) => button.classList.toggle("active", i === frame.stage));
+  writeTokens(player.tokens, player.result.token_sequence.slice(0, frame.shown), label => label === "ZERO" ? "zero" : "");
+  player.bars.hidden = !frame.cls;
+  drawReplay(frame);
+}
+
+function stopReplay() {
+  clearTimeout(player.timer);
+  player.timer = null;
+  player.play.textContent = "▶ Play";
+}
+
+function startReplay() {
+  if (player.index >= player.frames.length - 1) showFrame(0);
+  player.play.textContent = "❚❚ Pause";
+  const tick = () => {
+    if (player.index >= player.frames.length - 1) { stopReplay(); return; }
+    showFrame(player.index + 1);
+    player.timer = setTimeout(tick, player.frames[player.index].ms);
+  };
+  player.timer = setTimeout(tick, player.frames[player.index].ms);
+}
+
+player.play.addEventListener("click", () => player.timer ? stopReplay() : startReplay());
+player.scrub.addEventListener("input", () => showFrame(Number(player.scrub.value)));
+player.stages.replaceChildren(...STAGES.map((name, stage) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = name;
+  button.addEventListener("click", () => {
+    const first = player.frames.findIndex(f => f.stage === stage);
+    if (first >= 0) { stopReplay(); showFrame(first); }
+  });
+  return button;
+}));
+
+function loadReplay(result, autoplay) {
+  stopReplay();
+  player.result = result;
+  player.frames = buildFrames(result);
+  player.scrub.max = String(player.frames.length - 1);
+  player.image = new Image();
+  player.image.onload = () => showFrame(player.index);
+  player.image.src = "data:image/png;base64," + result.replay.spectrogram_png_base64;
+  const c = result.classification;
+  if (c) {
+    const maxDistance = Math.max(1, ...c.medoids.map(m => m.distance));
+    player.bars.replaceChildren(...c.medoids.slice().sort((a, b) => a.class.localeCompare(b.class)).map(m => {
+      const row = document.createElement("div");
+      row.className = "bar-row" + (m.class === c.predicted_class ? " win" : "");
+      const name = document.createElement("span");
+      name.textContent = "Class " + m.class;
+      const track = document.createElement("div");
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      bar.style.width = Math.max(3, m.distance/maxDistance*100) + "%";
+      track.append(bar);
+      const value = document.createElement("span");
+      value.textContent = "distance " + m.distance + (m.class === c.predicted_class ? " ✓" : "");
+      row.append(name, track, value);
+      return row;
+    }));
+  }
+  showFrame(0);
+  if (autoplay) startReplay();
+}
+
+function showPipelineResult(result, designedLabels, autoplay) {
   pipeline.result.hidden = false;
-  const tokens = result.token_sequence;
-  writeTokens(document.querySelector("#pipelineTokens"), tokens, label => label === "ZERO" ? "zero" : "");
   const notes = result.note_tokens;
   let checkText = "ZERO marks a silent gap. Note tokens only: " + notes.join(" ") + ".";
   if (designedLabels) {
@@ -510,6 +787,7 @@ function showPipelineResult(result, designedLabels) {
         : agree + " of " + designedLabels.length + " note tokens match the designed labels.");
   }
   document.querySelector("#tokenCheck").textContent = checkText;
+  document.querySelector("#tokenCheck").hidden = false;
   const label = document.querySelector("#classLabel");
   const classTable = document.querySelector("#classTable");
   classTable.replaceChildren();
@@ -527,7 +805,6 @@ function showPipelineResult(result, designedLabels) {
     String(i + 1), s.start_s.toFixed(3) + "–" + s.end_s.toFixed(3),
     {code:s.formula}, s.ga_best_loss === null ? "–" : s.ga_best_loss.toFixed(4), s.token, s.rule
   ]));
-  document.querySelector("#pipelineFigure").src = "data:image/png;base64," + result.figure_png_base64;
   document.querySelector("#composedFormula").textContent = result.composed_formula;
   document.querySelector("#pipelineChecks").replaceChildren(...result.checks.map(c => {
     const item = document.createElement("li");
@@ -540,6 +817,7 @@ function showPipelineResult(result, designedLabels) {
     + " generations per segment, maximum formula size " + p.fmlSizeLim + ", seed " + p.seed
     + ", times_extended " + p.times_extended + " (formula time t = 10 × seconds from the segment start). "
     + "Candidates evaluated: " + p.candidates_evaluated + "; run time " + result.elapsed_seconds.toFixed(1) + " s.";
+  loadReplay(result, autoplay);
 }
 
 async function pollJob(id, designedLabels) {
@@ -558,7 +836,7 @@ async function pollJob(id, designedLabels) {
     if (job.status === "done") {
       pipeline.trace.hidden = true;
       pipeline.status.textContent = "Done.";
-      showPipelineResult(job.result, designedLabels);
+      showPipelineResult(job.result, designedLabels, true);
       return;
     }
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -592,15 +870,26 @@ function showRecordedRuns(recorded) {
     button.textContent = "Song " + run.song + ": " + run.designed_labels.join(" ");
     button.addEventListener("click", () => {
       setOriginal(run.designed_labels, "Loaded song " + run.song + ".");
-      pipeline.status.textContent = "Recorded run of song " + run.song + " (GA seed " + recorded.seed + ").";
-      showPipelineResult(run.result, run.designed_labels);
+      describeRecordedRun(run, recorded);
+      showPipelineResult(run.result, run.designed_labels, true);
     });
     return button;
   });
   document.querySelector("#recordedButtons").replaceChildren(...buttons);
   const first = recorded.runs[0];
-  pipeline.status.textContent = "Recorded run of song " + first.song + " (GA seed " + recorded.seed + ").";
+  describeRecordedRun(first, recorded);
   showPipelineResult(first.result, first.designed_labels);
+}
+
+function describeRecordedRun(run, recorded) {
+  const seed = run.seed ?? recorded.seed;
+  pipeline.status.textContent = "Recorded run of song " + run.song + " (GA seed " + seed + ").";
+  const s = run.selection;
+  document.querySelector("#recordedNote").textContent = s
+    ? "Shown run: GA seed " + seed + ". " + s.seeds_correct.length + " of " + s.seeds_tried.length
+      + " seeds tried (" + s.seeds_tried.join(", ") + ") reproduced the designed notes and the class; "
+      + "the page shows the one with the lowest GA loss. None of these seeds was used to build the class medoids."
+    : "Shown run: GA seed " + seed + ".";
 }
 
 if (typeof fetch === "function" && typeof location !== "undefined") {
